@@ -127,7 +127,7 @@ class _AskAIScreenState extends State<AskAIScreen> {
                 children: [
                   if (_availableServices.isNotEmpty) ...[
                     DropdownButtonFormField<String>(
-                      value: _selectedService,
+                      initialValue: _selectedService,
                       decoration: const InputDecoration(
                         labelText: 'Select AI Service',
                       ),

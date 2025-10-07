@@ -4,7 +4,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import '../services/ocr_service.dart';
 import '../services/ai_service.dart';
-import 'package:flutter/rendering.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -119,12 +118,11 @@ class _HomeScreenState extends State<HomeScreen> {
               if (mistralController.text.isNotEmpty) {
                 await _aiManager.setAPIKey('mistral', mistralController.text);
               }
-              if (mounted) {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('API keys saved')),
-                );
-              }
+              if (!context.mounted) return;
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('API keys saved')),
+              );
             },
             child: const Text('Save'),
           ),

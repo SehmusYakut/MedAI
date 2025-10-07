@@ -9,7 +9,7 @@ import '../models/question.dart';
 class OCRViewModel extends ChangeNotifier {
   final _textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
   final _uuid = const Uuid();
-  List<Question> _questions = [];
+  final List<Question> _questions = [];
   bool _isProcessing = false;
 
   // Medical subjects for categorization
@@ -107,10 +107,7 @@ class OCRViewModel extends ChangeNotifier {
       'rnicrobiome': 'microbiome',
       'rnicrobiota': 'microbiota',
       'rnicrobiologist': 'microbiologist',
-      'rnicrobiology': 'microbiology',
       'rnicroscopic': 'microscopic',
-      'rnicroscopy': 'microscopy',
-      'rnicroorganism': 'microorganism',
     };
 
     commonMistakes.forEach((mistake, correction) {

@@ -35,7 +35,9 @@ class MedicineProgramCard extends StatelessWidget {
                       children: [
                         Text(
                           program.name,
-                          style: Theme.of(context).textTheme.titleLarge
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleLarge
                               ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         if (program.description != null) ...[
@@ -45,10 +47,13 @@ class MedicineProgramCard extends StatelessWidget {
                             style: Theme.of(
                               context,
                             ).textTheme.bodyMedium?.copyWith(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onSurface.withOpacity(0.6),
-                            ),
+                                  color: Theme.of(
+                                    context,
+                                  )
+                                      .colorScheme
+                                      .onSurface
+                                      .withValues(alpha: 0.6),
+                                ),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -61,45 +66,44 @@ class MedicineProgramCard extends StatelessWidget {
                       Icons.more_vert,
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
-                    itemBuilder:
-                        (context) => [
-                          PopupMenuItem(
-                            onTap: onToggle,
-                            child: ListTile(
-                              leading: Icon(
-                                program.isActive
-                                    ? Icons.pause_circle_outline
-                                    : Icons.play_circle_outline,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                              title: Text(
-                                program.isActive ? 'Deactivate' : 'Activate',
-                                style: TextStyle(
-                                  color: Theme.of(context).colorScheme.primary,
-                                ),
-                              ),
-                              contentPadding: EdgeInsets.zero,
-                              visualDensity: VisualDensity.compact,
+                    itemBuilder: (context) => [
+                      PopupMenuItem(
+                        onTap: onToggle,
+                        child: ListTile(
+                          leading: Icon(
+                            program.isActive
+                                ? Icons.pause_circle_outline
+                                : Icons.play_circle_outline,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          title: Text(
+                            program.isActive ? 'Deactivate' : 'Activate',
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.primary,
                             ),
                           ),
-                          PopupMenuItem(
-                            onTap: onDelete,
-                            child: ListTile(
-                              leading: Icon(
-                                Icons.delete_outline,
-                                color: Theme.of(context).colorScheme.error,
-                              ),
-                              title: Text(
-                                'Delete',
-                                style: TextStyle(
-                                  color: Theme.of(context).colorScheme.error,
-                                ),
-                              ),
-                              contentPadding: EdgeInsets.zero,
-                              visualDensity: VisualDensity.compact,
+                          contentPadding: EdgeInsets.zero,
+                          visualDensity: VisualDensity.compact,
+                        ),
+                      ),
+                      PopupMenuItem(
+                        onTap: onDelete,
+                        child: ListTile(
+                          leading: Icon(
+                            Icons.delete_outline,
+                            color: Theme.of(context).colorScheme.error,
+                          ),
+                          title: Text(
+                            'Delete',
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.error,
                             ),
                           ),
-                        ],
+                          contentPadding: EdgeInsets.zero,
+                          visualDensity: VisualDensity.compact,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

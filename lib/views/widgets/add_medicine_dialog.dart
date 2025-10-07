@@ -75,24 +75,22 @@ class _AddMedicineDialogState extends State<AddMedicineDialog> {
     final medicine = Medicine(
       id: const Uuid().v4(),
       name: _nameController.text,
-      description:
-          _descriptionController.text.isEmpty
-              ? null
-              : _descriptionController.text,
+      description: _descriptionController.text.isEmpty
+          ? null
+          : _descriptionController.text,
       dosage: _dosageController.text,
       startDate: _startDate,
       endDate: _endDate,
-      instructions:
-          _instructionsController.text.isEmpty
-              ? null
-              : _instructionsController.text,
+      instructions: _instructionsController.text.isEmpty
+          ? null
+          : _instructionsController.text,
       source: _selectedSource?.name,
     );
 
     context.read<MedicineProgramViewModel>().addMedicine(
-      widget.programId,
-      medicine,
-    );
+          widget.programId,
+          medicine,
+        );
 
     Navigator.pop(context);
   }
@@ -152,35 +150,34 @@ class _AddMedicineDialogState extends State<AddMedicineDialog> {
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<MedicineSource>(
-              value: _selectedSource,
+              initialValue: _selectedSource,
               decoration: const InputDecoration(
                 labelText: 'Medical Department/Source',
                 border: OutlineInputBorder(),
               ),
-              items:
-                  sources.map((source) {
-                    return DropdownMenuItem(
-                      value: source,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(source.name),
-                          if (source.description != null)
-                            Text(
-                              source.description!,
-                              style: Theme.of(
-                                context,
-                              ).textTheme.bodySmall?.copyWith(
+              items: sources.map((source) {
+                return DropdownMenuItem(
+                  value: source,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(source.name),
+                      if (source.description != null)
+                        Text(
+                          source.description!,
+                          style: Theme.of(
+                            context,
+                          ).textTheme.bodySmall?.copyWith(
                                 color: Theme.of(
                                   context,
-                                ).colorScheme.onSurface.withOpacity(0.6),
+                                ).colorScheme.onSurface.withValues(alpha: 0.6),
                               ),
-                            ),
-                        ],
-                      ),
-                    );
-                  }).toList(),
+                        ),
+                    ],
+                  ),
+                );
+              }).toList(),
               onChanged: (source) => setState(() => _selectedSource = source),
             ),
             const SizedBox(height: 16),

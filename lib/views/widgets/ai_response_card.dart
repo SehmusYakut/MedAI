@@ -40,7 +40,7 @@ class AIResponseCard extends StatelessWidget {
                   style: TextStyle(
                     color: Theme.of(
                       context,
-                    ).colorScheme.onPrimaryContainer.withOpacity(0.7),
+                    ).colorScheme.onPrimaryContainer.withValues(alpha: 0.7),
                   ),
                 ),
               ],
@@ -48,15 +48,14 @@ class AIResponseCard extends StatelessWidget {
           ),
           Container(
             padding: const EdgeInsets.all(16),
-            child:
-                response.isError
-                    ? Text(
-                      response.response,
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.error,
-                      ),
-                    )
-                    : MarkdownBody(data: response.response, selectable: true),
+            child: response.isError
+                ? Text(
+                    response.response,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  )
+                : MarkdownBody(data: response.response, selectable: true),
           ),
         ],
       ),

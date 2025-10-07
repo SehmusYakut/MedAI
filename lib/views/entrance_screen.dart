@@ -61,8 +61,8 @@ class _EntranceScreenState extends State<EntranceScreen>
   void _navigateToHome() {
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
-        pageBuilder:
-            (context, animation, secondaryAnimation) => const HomeScreen(),
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            const HomeScreen(),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return FadeTransition(opacity: animation, child: child);
         },
@@ -89,7 +89,7 @@ class _EntranceScreenState extends State<EntranceScreen>
             end: Alignment.bottomRight,
             colors: [
               colorScheme.primary,
-              colorScheme.primary.withOpacity(0.8),
+              colorScheme.primary.withValues(alpha: 0.8),
               colorScheme.primaryContainer,
             ],
           ),
@@ -114,7 +114,7 @@ class _EntranceScreenState extends State<EntranceScreen>
                             borderRadius: BorderRadius.circular(24),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
+                                color: Colors.black.withValues(alpha: 0.1),
                                 blurRadius: 20,
                                 spreadRadius: 5,
                               ),
@@ -137,22 +137,23 @@ class _EntranceScreenState extends State<EntranceScreen>
                       child: Column(
                         children: [
                           Text(
-                            'Medway',
+                            'MedAI',
                             style: Theme.of(
                               context,
                             ).textTheme.displaySmall?.copyWith(
-                              color: colorScheme.onPrimary,
-                              fontWeight: FontWeight.bold,
-                            ),
+                                  color: colorScheme.onPrimary,
+                                  fontWeight: FontWeight.bold,
+                                ),
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Your Personal Medicine Assistant',
+                            'Your Intelligent Medical Assistant',
                             style: Theme.of(
                               context,
                             ).textTheme.titleMedium?.copyWith(
-                              color: colorScheme.onPrimary.withOpacity(0.8),
-                            ),
+                                  color: colorScheme.onPrimary
+                                      .withValues(alpha: 0.8),
+                                ),
                           ),
                         ],
                       ),

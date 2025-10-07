@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../models/medicine_program.dart' show MedicineProgram, MedicineSource;
 import '../models/medicine.dart';
@@ -6,7 +5,7 @@ import 'package:uuid/uuid.dart';
 
 class MedicineProgramViewModel extends ChangeNotifier {
   final List<MedicineProgram> _programs = [];
-  bool _isLoading = false;
+  final bool _isLoading = false;
 
   List<MedicineProgram> get programs => List.unmodifiable(_programs);
   List<MedicineProgram> get activePrograms =>

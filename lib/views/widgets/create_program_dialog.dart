@@ -78,14 +78,13 @@ class _CreateProgramDialogState extends State<CreateProgramDialog> {
     }
 
     context.read<MedicineProgramViewModel>().createProgram(
-      name: _nameController.text,
-      description:
-          _descriptionController.text.isEmpty
+          name: _nameController.text,
+          description: _descriptionController.text.isEmpty
               ? null
               : _descriptionController.text,
-      days: selectedDays,
-      reminderTimes: _reminderTimes,
-    );
+          days: selectedDays,
+          reminderTimes: _reminderTimes,
+        );
 
     Navigator.pop(context);
   }
@@ -102,7 +101,8 @@ class _CreateProgramDialogState extends State<CreateProgramDialog> {
         ),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: colorScheme.onBackground.withOpacity(0.1)),
+          border:
+              Border.all(color: colorScheme.onSurface.withValues(alpha: 0.1)),
         ),
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -115,7 +115,7 @@ class _CreateProgramDialogState extends State<CreateProgramDialog> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: colorScheme.primary.withOpacity(0.1),
+                      color: colorScheme.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Icon(
@@ -130,7 +130,9 @@ class _CreateProgramDialogState extends State<CreateProgramDialog> {
                       children: [
                         Text(
                           'Create Program',
-                          style: Theme.of(context).textTheme.titleLarge
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleLarge
                               ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 4),
@@ -139,8 +141,9 @@ class _CreateProgramDialogState extends State<CreateProgramDialog> {
                           style: Theme.of(
                             context,
                           ).textTheme.bodyMedium?.copyWith(
-                            color: colorScheme.onSurface.withOpacity(0.6),
-                          ),
+                                color: colorScheme.onSurface
+                                    .withValues(alpha: 0.6),
+                              ),
                         ),
                       ],
                     ),
@@ -177,7 +180,9 @@ class _CreateProgramDialogState extends State<CreateProgramDialog> {
                       const SizedBox(height: 24),
                       Text(
                         'Schedule',
-                        style: Theme.of(context).textTheme.titleMedium
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleMedium
                             ?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 16),
@@ -190,7 +195,9 @@ class _CreateProgramDialogState extends State<CreateProgramDialog> {
                       const SizedBox(height: 24),
                       Text(
                         'Reminders',
-                        style: Theme.of(context).textTheme.titleMedium
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleMedium
                             ?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 16),
@@ -198,10 +205,9 @@ class _CreateProgramDialogState extends State<CreateProgramDialog> {
                         times: _reminderTimes,
                         onChanged: (times) {
                           setState(
-                            () =>
-                                _reminderTimes
-                                  ..clear()
-                                  ..addAll(times),
+                            () => _reminderTimes
+                              ..clear()
+                              ..addAll(times),
                           );
                         },
                       ),

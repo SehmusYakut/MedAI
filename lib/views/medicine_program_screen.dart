@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/medicine_program_view_model.dart';
 import '../models/medicine_program.dart';
-import 'widgets/weekly_schedule.dart';
-import 'widgets/reminder_time_picker.dart';
 import 'widgets/create_program_dialog.dart';
 import 'widgets/medicine_program_card.dart';
 import 'program_details_screen.dart';
@@ -19,11 +17,10 @@ class MedicineProgramScreen extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
-            onPressed:
-                () => showDialog(
-                  context: context,
-                  builder: (context) => const CreateProgramDialog(),
-                ),
+            onPressed: () => showDialog(
+              context: context,
+              builder: (context) => const CreateProgramDialog(),
+            ),
           ),
         ],
       ),
@@ -54,25 +51,24 @@ class MedicineProgramScreen extends StatelessWidget {
                   Text(
                     'No medicine programs yet',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'Create your first program by tapping the + button',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.onSurface.withOpacity(0.6),
-                    ),
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withValues(alpha: 0.6),
+                        ),
                   ),
                   const SizedBox(height: 32),
                   FilledButton.icon(
-                    onPressed:
-                        () => showDialog(
-                          context: context,
-                          builder: (context) => const CreateProgramDialog(),
-                        ),
+                    onPressed: () => showDialog(
+                      context: context,
+                      builder: (context) => const CreateProgramDialog(),
+                    ),
                     icon: const Icon(Icons.add),
                     label: const Text('Create Program'),
                   ),
@@ -100,10 +96,9 @@ class MedicineProgramScreen extends StatelessWidget {
                         children: [
                           Icon(
                             Icons.check_circle,
-                            color:
-                                Theme.of(
-                                  context,
-                                ).colorScheme.onPrimaryContainer,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onPrimaryContainer,
                           ),
                           const SizedBox(width: 12),
                           Text(
@@ -111,10 +106,9 @@ class MedicineProgramScreen extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
-                              color:
-                                  Theme.of(
-                                    context,
-                                  ).colorScheme.onPrimaryContainer,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onPrimaryContainer,
                             ),
                           ),
                         ],
@@ -130,8 +124,8 @@ class MedicineProgramScreen extends StatelessWidget {
                       return MedicineProgramCard(
                         program: program,
                         onTap: () => _showProgramDetails(context, program),
-                        onToggle:
-                            () => viewModel.toggleProgramStatus(program.id),
+                        onToggle: () =>
+                            viewModel.toggleProgramStatus(program.id),
                         onDelete: () => _confirmDelete(context, program),
                       );
                     }, childCount: viewModel.activePrograms.length),
@@ -148,7 +142,9 @@ class MedicineProgramScreen extends StatelessWidget {
                         vertical: 12,
                       ),
                       decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surfaceVariant,
+                        color: Theme.of(context)
+                            .colorScheme
+                            .surfaceContainerHighest,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Row(
@@ -164,10 +160,9 @@ class MedicineProgramScreen extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
-                              color:
-                                  Theme.of(
-                                    context,
-                                  ).colorScheme.onSurfaceVariant,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
                             ),
                           ),
                         ],
@@ -180,15 +175,14 @@ class MedicineProgramScreen extends StatelessWidget {
                   sliver: SliverList(
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {
-                        final program =
-                            viewModel.programs
-                                .where((p) => !p.isActive)
-                                .toList()[index];
+                        final program = viewModel.programs
+                            .where((p) => !p.isActive)
+                            .toList()[index];
                         return MedicineProgramCard(
                           program: program,
                           onTap: () => _showProgramDetails(context, program),
-                          onToggle:
-                              () => viewModel.toggleProgramStatus(program.id),
+                          onToggle: () =>
+                              viewModel.toggleProgramStatus(program.id),
                           onDelete: () => _confirmDelete(context, program),
                         );
                       },
@@ -204,11 +198,10 @@ class MedicineProgramScreen extends StatelessWidget {
         },
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed:
-            () => showDialog(
-              context: context,
-              builder: (context) => const CreateProgramDialog(),
-            ),
+        onPressed: () => showDialog(
+          context: context,
+          builder: (context) => const CreateProgramDialog(),
+        ),
         icon: const Icon(Icons.add),
         label: const Text('New Program'),
       ),
@@ -227,39 +220,38 @@ class MedicineProgramScreen extends StatelessWidget {
   void _confirmDelete(BuildContext context, MedicineProgram program) {
     showDialog(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: Row(
-              children: [
-                Icon(Icons.warning, color: Theme.of(context).colorScheme.error),
-                const SizedBox(width: 12),
-                const Text('Delete Program'),
-              ],
-            ),
-            content: Text(
-              'Are you sure you want to delete "${program.name}"? This action cannot be undone.',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Cancel'),
-              ),
-              FilledButton.icon(
-                onPressed: () {
-                  context.read<MedicineProgramViewModel>().deleteProgram(
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.warning, color: Theme.of(context).colorScheme.error),
+            const SizedBox(width: 12),
+            const Text('Delete Program'),
+          ],
+        ),
+        content: Text(
+          'Are you sure you want to delete "${program.name}"? This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          FilledButton.icon(
+            onPressed: () {
+              context.read<MedicineProgramViewModel>().deleteProgram(
                     program.id,
                   );
-                  Navigator.pop(context);
-                },
-                style: FilledButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.error,
-                  foregroundColor: Theme.of(context).colorScheme.onError,
-                ),
-                icon: const Icon(Icons.delete_forever),
-                label: const Text('Delete'),
-              ),
-            ],
+              Navigator.pop(context);
+            },
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+              foregroundColor: Theme.of(context).colorScheme.onError,
+            ),
+            icon: const Icon(Icons.delete_forever),
+            label: const Text('Delete'),
           ),
+        ],
+      ),
     );
   }
 }

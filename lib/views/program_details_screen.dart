@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/medicine_program_view_model.dart';
 import '../models/medicine_program.dart' show MedicineProgram;
-import '../models/medicine.dart';
 import 'widgets/weekly_schedule.dart';
 import 'widgets/reminder_time_picker.dart';
 import 'widgets/add_medicine_dialog.dart';
@@ -77,10 +76,9 @@ class _ProgramDetailsScreenState extends State<ProgramDetailsScreen> {
     final viewModel = context.read<MedicineProgramViewModel>();
     final updatedProgram = widget.program.copyWith(
       name: _nameController.text,
-      description:
-          _descriptionController.text.isEmpty
-              ? null
-              : _descriptionController.text,
+      description: _descriptionController.text.isEmpty
+          ? null
+          : _descriptionController.text,
       days: _getSelectedDaysAsStrings(),
       reminderTimes: _reminderTimes,
     );
@@ -117,8 +115,8 @@ class _ProgramDetailsScreenState extends State<ProgramDetailsScreen> {
                   Text(
                     'Basic Information',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                   const SizedBox(height: 16),
                   TextField(
@@ -152,8 +150,8 @@ class _ProgramDetailsScreenState extends State<ProgramDetailsScreen> {
                   Text(
                     'Schedule',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                   const SizedBox(height: 16),
                   WeeklySchedule(
@@ -165,8 +163,8 @@ class _ProgramDetailsScreenState extends State<ProgramDetailsScreen> {
                   const SizedBox(height: 16),
                   ReminderTimePicker(
                     times: _reminderTimes,
-                    onChanged:
-                        (times) => setState(() => _reminderTimes = times),
+                    onChanged: (times) =>
+                        setState(() => _reminderTimes = times),
                   ),
                 ],
               ),
@@ -184,7 +182,9 @@ class _ProgramDetailsScreenState extends State<ProgramDetailsScreen> {
                       Expanded(
                         child: Text(
                           'Medicines',
-                          style: Theme.of(context).textTheme.titleLarge
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleLarge
                               ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                       ),
@@ -205,7 +205,7 @@ class _ProgramDetailsScreenState extends State<ProgramDetailsScreen> {
                             size: 48,
                             color: Theme.of(
                               context,
-                            ).colorScheme.onSurface.withOpacity(0.2),
+                            ).colorScheme.onSurface.withValues(alpha: 0.2),
                           ),
                           const SizedBox(height: 12),
                           Text(
@@ -213,7 +213,7 @@ class _ProgramDetailsScreenState extends State<ProgramDetailsScreen> {
                             style: TextStyle(
                               color: Theme.of(
                                 context,
-                              ).colorScheme.onSurface.withOpacity(0.6),
+                              ).colorScheme.onSurface.withValues(alpha: 0.6),
                             ),
                           ),
                         ],
@@ -225,8 +225,8 @@ class _ProgramDetailsScreenState extends State<ProgramDetailsScreen> {
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
                       itemCount: widget.program.medicines.length,
-                      separatorBuilder:
-                          (context, index) => const SizedBox(height: 8),
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(height: 8),
                       itemBuilder: (context, index) {
                         final medicine = widget.program.medicines[index];
                         return ListTile(

@@ -18,7 +18,6 @@ class OCRScreen extends StatefulWidget {
 class _OCRScreenState extends State<OCRScreen> {
   File? _image;
   String _recognizedText = '';
-  final _imagePicker = ImagePicker();
   bool _isProcessing = false;
   final AIServiceManager _aiManager = AIServiceManager();
   final OCRService _ocrService = OCRService();
@@ -41,22 +40,23 @@ class _OCRScreenState extends State<OCRScreen> {
       final imageFile =
           await _ocrService.pickImage(fromCamera: source == ImageSource.camera);
 
-      if (imageFile != null) {
+      if (imageFile != null && mounted) {
         debugPrint('Image picked successfully: ${imageFile.path}');
+
+        final ocrViewModel = context.read<OCRViewModel>();
+
         setState(() {
           _image = imageFile;
           _recognizedText = '';
           _aiResponses = {};
         });
 
-        final ocrViewModel = context.read<OCRViewModel>();
         final recognizedText = await ocrViewModel.processImage(_image!);
 
-        if (mounted) {
-          setState(() {
-            _recognizedText = recognizedText;
-          });
-        }
+        if (!mounted) return;
+        setState(() {
+          _recognizedText = recognizedText;
+        });
       } else {
         debugPrint('No image was selected');
       }
@@ -116,6 +116,7 @@ class _OCRScreenState extends State<OCRScreen> {
       final services = await _aiManager.getServices();
 
       if (services.isEmpty) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
@@ -203,7 +204,7 @@ Provide a comprehensive answer with explanations and key points.
                         Container(
                           height: 300,
                           decoration: BoxDecoration(
-                            color: colorScheme.surfaceVariant,
+                            color: colorScheme.surfaceContainerHighest,
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(
                               color: colorScheme.outline.withAlpha(128),
