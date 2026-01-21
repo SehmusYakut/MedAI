@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:google_generative_ai/google_generative_ai.dart';
 import 'api_key_service.dart';
 
 abstract class AIService {
@@ -75,6 +76,36 @@ class MistralService implements AIService {
   }
 }
 
+class GeminiService implements AIService {
+  final String apiKey;
+
+  GeminiService(this.apiKey);
+
+  @override
+  String get name => 'Gemini';
+
+  @override
+  Future<String> generateResponse(String prompt) async {
+    try {
+      final model = GenerativeModel(
+        model: 'gemini-2.5-pro',
+        apiKey: apiKey,
+      );
+
+      final content = [Content.text(prompt)];
+      final response = await model.generateContent(content);
+
+      if (response.text != null) {
+        return response.text!;
+      } else {
+        throw Exception('No response from Gemini');
+      }
+    } catch (e) {
+      throw Exception('Failed to get response from Gemini: $e');
+    }
+  }
+}
+
 class AIServiceManager {
   static final AIServiceManager _instance = AIServiceManager._internal();
   factory AIServiceManager() => _instance;
@@ -88,6 +119,7 @@ class AIServiceManager {
     final apiKeyService = await ApiKeyService.getInstance();
     final chatGPTKey = apiKeyService.getChatGPTApiKey();
     final mistralKey = apiKeyService.getMistralApiKey();
+    final geminiKey = apiKeyService.getGeminiApiKey();
 
     _services = [];
 
@@ -97,6 +129,10 @@ class AIServiceManager {
 
     if (mistralKey != null) {
       _services!.add(MistralService(mistralKey));
+    }
+
+    if (geminiKey != null) {
+      _services!.add(GeminiService(geminiKey));
     }
 
     return _services!;
@@ -109,6 +145,8 @@ class AIServiceManager {
       await apiKeyService.setChatGPTApiKey(apiKey);
     } else if (serviceName.toLowerCase() == 'mistral') {
       await apiKeyService.setMistralApiKey(apiKey);
+    } else if (serviceName.toLowerCase() == 'gemini') {
+      await apiKeyService.setGeminiApiKey(apiKey);
     }
 
     _services = null; // Reset services to force reload

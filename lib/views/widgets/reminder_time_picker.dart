@@ -60,10 +60,16 @@ class ReminderTimePicker extends StatelessWidget {
                 style: Theme.of(context).textTheme.labelLarge,
               ),
             ),
-            TextButton.icon(
-              onPressed: () => _addTime(context),
-              icon: const Icon(Icons.add),
-              label: const Text('Add Time'),
+            const SizedBox(width: 8),
+            Flexible(
+              child: TextButton.icon(
+                onPressed: () => _addTime(context),
+                icon: const Icon(Icons.add, size: 18),
+                label: const Text('Add'),
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                ),
+              ),
             ),
           ],
         ),
@@ -81,27 +87,26 @@ class ReminderTimePicker extends StatelessWidget {
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children:
-                times.map((time) {
-                  return Chip(
-                    label: Text(_formatTime(time)),
-                    deleteIcon: const Icon(Icons.close, size: 18),
-                    onDeleted: () {
-                      final updatedTimes = List<TimeOfDay>.from(times)
-                        ..removeWhere(
-                          (t) => t.hour == time.hour && t.minute == time.minute,
-                        );
-                      onChanged(updatedTimes);
-                    },
-                    backgroundColor:
-                        Theme.of(context).colorScheme.secondaryContainer,
-                    labelStyle: TextStyle(
-                      color: Theme.of(context).colorScheme.onSecondaryContainer,
-                    ),
-                    deleteIconColor:
-                        Theme.of(context).colorScheme.onSecondaryContainer,
-                  );
-                }).toList(),
+            children: times.map((time) {
+              return Chip(
+                label: Text(_formatTime(time)),
+                deleteIcon: const Icon(Icons.close, size: 18),
+                onDeleted: () {
+                  final updatedTimes = List<TimeOfDay>.from(times)
+                    ..removeWhere(
+                      (t) => t.hour == time.hour && t.minute == time.minute,
+                    );
+                  onChanged(updatedTimes);
+                },
+                backgroundColor:
+                    Theme.of(context).colorScheme.secondaryContainer,
+                labelStyle: TextStyle(
+                  color: Theme.of(context).colorScheme.onSecondaryContainer,
+                ),
+                deleteIconColor:
+                    Theme.of(context).colorScheme.onSecondaryContainer,
+              );
+            }).toList(),
           ),
         ],
       ],

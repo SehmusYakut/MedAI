@@ -5,6 +5,7 @@ class ApiKeyService {
   static const String _lastUpdatedKey = 'api_key_last_updated';
   static const String _chatGPTKeyKey = 'chatgpt_api_key';
   static const String _mistralKeyKey = 'mistral_api_key';
+  static const String _geminiKeyKey = 'gemini_api_key';
 
   final SharedPreferences _prefs;
 
@@ -51,9 +52,18 @@ class ApiKeyService {
     await _prefs.setString(_mistralKeyKey, apiKey);
   }
 
+  String? getGeminiApiKey() {
+    return _prefs.getString(_geminiKeyKey);
+  }
+
+  Future<void> setGeminiApiKey(String apiKey) async {
+    await _prefs.setString(_geminiKeyKey, apiKey);
+  }
+
   Future<void> clearAllApiKeys() async {
     await clearApiKey();
     await _prefs.remove(_chatGPTKeyKey);
     await _prefs.remove(_mistralKeyKey);
+    await _prefs.remove(_geminiKeyKey);
   }
 }

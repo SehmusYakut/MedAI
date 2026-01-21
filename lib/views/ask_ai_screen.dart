@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/ai_response.dart';
 import '../services/ai_service.dart';
-import '../services/api_key_service.dart';
 
 class AskAIScreen extends StatefulWidget {
   const AskAIScreen({super.key});
@@ -18,7 +17,6 @@ class _AskAIScreenState extends State<AskAIScreen> {
   bool _isLoading = false;
   String? _selectedService;
   List<AIService> _availableServices = [];
-  late ApiKeyService _apiKeyService;
 
   @override
   void initState() {
@@ -27,14 +25,23 @@ class _AskAIScreenState extends State<AskAIScreen> {
   }
 
   Future<void> _loadServices() async {
-    _apiKeyService = await ApiKeyService.getInstance();
-    final apiKey = _apiKeyService.getApiKey();
+    final services = await AIServiceManager().getServices();
 
-    if (apiKey == null) {
-      if (mounted) {
+    if (mounted) {
+      setState(() {
+        _availableServices = services;
+        if (services.isNotEmpty) {
+          _selectedService = services.first.name;
+        } else {
+          _selectedService = null;
+        }
+      });
+
+      if (services.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Please set your API key first'),
+            content:
+                const Text('Please set at least one AI service API key first'),
             action: SnackBarAction(
               label: 'Set API Key',
               onPressed: _navigateToApiKey,
@@ -42,20 +49,13 @@ class _AskAIScreenState extends State<AskAIScreen> {
           ),
         );
       }
-      return;
     }
-
-    final services = await AIServiceManager().getServices();
-    setState(() {
-      _availableServices = services;
-      if (services.isNotEmpty) {
-        _selectedService = services.first.name;
-      }
-    });
   }
 
-  void _navigateToApiKey() {
-    Navigator.pushNamed(context, '/api-key');
+  void _navigateToApiKey() async {
+    await Navigator.pushNamed(context, '/api-key');
+    // Reload services when returning from API key screen
+    _loadServices();
   }
 
   Future<void> _askAI() async {
@@ -116,6 +116,18 @@ class _AskAIScreenState extends State<AskAIScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Ask AI'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: _loadServices,
+            tooltip: 'Refresh AI Services',
+          ),
+          IconButton(
+            icon: const Icon(Icons.key),
+            onPressed: _navigateToApiKey,
+            tooltip: 'Manage API Keys',
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -125,6 +137,41 @@ class _AskAIScreenState extends State<AskAIScreen> {
               key: _formKey,
               child: Column(
                 children: [
+                  if (_availableServices.isEmpty) ...[
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.errorContainer,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.info_outline,
+                            color:
+                                Theme.of(context).colorScheme.onErrorContainer,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              'No AI services configured. Please add at least one API key.',
+                              style: TextStyle(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onErrorContainer,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    FilledButton.icon(
+                      onPressed: _navigateToApiKey,
+                      icon: const Icon(Icons.key),
+                      label: const Text('Add API Key'),
+                    ),
+                  ],
                   if (_availableServices.isNotEmpty) ...[
                     DropdownButtonFormField<String>(
                       initialValue: _selectedService,

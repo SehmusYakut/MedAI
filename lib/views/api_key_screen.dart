@@ -13,10 +13,12 @@ class _ApiKeyScreenState extends State<ApiKeyScreen> {
   final _apiKeyController = TextEditingController();
   final _chatGPTKeyController = TextEditingController();
   final _mistralKeyController = TextEditingController();
+  final _geminiKeyController = TextEditingController();
   late ApiKeyService _apiKeyService;
   String? _currentApiKey;
   String? _currentChatGPTKey;
   String? _currentMistralKey;
+  String? _currentGeminiKey;
   DateTime? _lastUpdated;
 
   @override
@@ -31,6 +33,7 @@ class _ApiKeyScreenState extends State<ApiKeyScreen> {
       _currentApiKey = _apiKeyService.getApiKey();
       _currentChatGPTKey = _apiKeyService.getChatGPTApiKey();
       _currentMistralKey = _apiKeyService.getMistralApiKey();
+      _currentGeminiKey = _apiKeyService.getGeminiApiKey();
       _lastUpdated = _apiKeyService.getLastUpdated();
     });
   }
@@ -66,6 +69,18 @@ class _ApiKeyScreenState extends State<ApiKeyScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Mistral API key saved successfully')),
+        );
+      }
+    }
+  }
+
+  Future<void> _saveGeminiApiKey() async {
+    if (_geminiKeyController.text.isNotEmpty) {
+      await _apiKeyService.setGeminiApiKey(_geminiKeyController.text);
+      await _loadApiKeys();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Gemini API key saved successfully')),
         );
       }
     }
@@ -234,6 +249,34 @@ class _ApiKeyScreenState extends State<ApiKeyScreen> {
                     ),
                     const SizedBox(height: 16),
 
+                    // Gemini API Key
+                    Text(
+                      'Gemini API Key',
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
+                    const SizedBox(height: 8),
+                    if (_currentGeminiKey != null) ...[
+                      Text(
+                        _currentGeminiKey!,
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      ),
+                      const SizedBox(height: 8),
+                    ],
+                    const SizedBox(height: 8),
+                    TextFormField(
+                      controller: _geminiKeyController,
+                      decoration: const InputDecoration(
+                        labelText: 'Gemini API Key',
+                        hintText: 'Enter your Gemini API key',
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    FilledButton(
+                      onPressed: _saveGeminiApiKey,
+                      child: const Text('Save Gemini API Key'),
+                    ),
+                    const SizedBox(height: 16),
+
                     // Clear All Button
                     OutlinedButton(
                       onPressed: _clearAllApiKeys,
@@ -254,6 +297,7 @@ class _ApiKeyScreenState extends State<ApiKeyScreen> {
     _apiKeyController.dispose();
     _chatGPTKeyController.dispose();
     _mistralKeyController.dispose();
+    _geminiKeyController.dispose();
     super.dispose();
   }
 }

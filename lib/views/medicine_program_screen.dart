@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/medicine_program_view_model.dart';
 import '../models/medicine_program.dart';
+import '../l10n/app_localizations.dart';
 import 'widgets/create_program_dialog.dart';
 import 'widgets/medicine_program_card.dart';
 import 'program_details_screen.dart';
@@ -13,7 +14,7 @@ class MedicineProgramScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Medicine Programs'),
+        title: Text(AppLocalizations.of(context).medicinePrograms),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
@@ -49,14 +50,14 @@ class MedicineProgramScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 24),
                   Text(
-                    'No medicine programs yet',
+                    AppLocalizations.of(context).noPrograms,
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Create your first program by tapping the + button',
+                    AppLocalizations.of(context).createFirstProgram,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: Theme.of(
                             context,
@@ -70,7 +71,7 @@ class MedicineProgramScreen extends StatelessWidget {
                       builder: (context) => const CreateProgramDialog(),
                     ),
                     icon: const Icon(Icons.add),
-                    label: const Text('Create Program'),
+                    label: Text(AppLocalizations.of(context).createProgram),
                   ),
                 ],
               ),

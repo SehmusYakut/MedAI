@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'home_screen.dart';
+import '../l10n/app_localizations.dart';
 
 class EntranceScreen extends StatefulWidget {
   const EntranceScreen({super.key});
@@ -108,22 +109,36 @@ class _EntranceScreenState extends State<EntranceScreen>
                       child: ScaleTransition(
                         scale: _scaleAnimation,
                         child: Container(
-                          padding: const EdgeInsets.all(24),
+                          width: 200,
+                          height: 200,
                           decoration: BoxDecoration(
-                            color: colorScheme.surface,
-                            borderRadius: BorderRadius.circular(24),
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(30),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.1),
-                                blurRadius: 20,
+                                color: Colors.black.withValues(alpha: 0.2),
+                                blurRadius: 25,
                                 spreadRadius: 5,
+                                offset: const Offset(0, 10),
                               ),
                             ],
                           ),
-                          child: Icon(
-                            Icons.medical_services,
-                            size: 80,
-                            color: colorScheme.primary,
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(30),
+                            child: Padding(
+                              padding: const EdgeInsets.all(20),
+                              child: Image.asset(
+                                'lib/assests/logo.jpeg',
+                                fit: BoxFit.contain,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Icon(
+                                    Icons.medical_services,
+                                    size: 100,
+                                    color: colorScheme.primary,
+                                  );
+                                },
+                              ),
+                            ),
                           ),
                         ),
                       ),
@@ -137,7 +152,7 @@ class _EntranceScreenState extends State<EntranceScreen>
                       child: Column(
                         children: [
                           Text(
-                            'MedAI',
+                            AppLocalizations.of(context).appTitle,
                             style: Theme.of(
                               context,
                             ).textTheme.displaySmall?.copyWith(
@@ -147,7 +162,7 @@ class _EntranceScreenState extends State<EntranceScreen>
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Your Intelligent Medical Assistant',
+                            AppLocalizations.of(context).appSubtitle,
                             style: Theme.of(
                               context,
                             ).textTheme.titleMedium?.copyWith(
@@ -175,9 +190,9 @@ class _EntranceScreenState extends State<EntranceScreen>
                           ),
                         ),
                         icon: const Icon(Icons.arrow_forward_rounded),
-                        label: const Text(
-                          "Let's Start",
-                          style: TextStyle(
+                        label: Text(
+                          AppLocalizations.of(context).getStarted,
+                          style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),

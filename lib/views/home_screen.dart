@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
+import 'widgets/language_selector.dart';
 import 'ocr_screen.dart';
 import 'medicine_program_screen.dart';
 import 'ask_ai_screen.dart';
@@ -10,8 +12,39 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('MedAI'),
+        leadingWidth: 56,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 12, top: 8, bottom: 8),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: Padding(
+                padding: const EdgeInsets.all(4),
+                child: Image.asset(
+                  'lib/assests/logo.jpeg',
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const Icon(Icons.medical_services, size: 24);
+                  },
+                ),
+              ),
+            ),
+          ),
+        ),
+        title: Text(AppLocalizations.of(context).appTitle),
         actions: [
+          const LanguageSelector(),
           IconButton(
             icon: const Icon(Icons.key),
             onPressed: () => Navigator.pushNamed(context, '/api-key'),
@@ -27,7 +60,7 @@ class HomeScreen extends StatelessWidget {
         children: [
           _buildFeatureCard(
             context,
-            'Medicine Programs',
+            AppLocalizations.of(context).medicinePrograms,
             Icons.medication,
             () => Navigator.push(
               context,
@@ -38,7 +71,7 @@ class HomeScreen extends StatelessWidget {
           ),
           _buildFeatureCard(
             context,
-            'Scan Questions',
+            AppLocalizations.of(context).ocrScan,
             Icons.document_scanner,
             () => Navigator.push(
               context,
@@ -49,7 +82,7 @@ class HomeScreen extends StatelessWidget {
           ),
           _buildFeatureCard(
             context,
-            'Ask AI',
+            AppLocalizations.of(context).askAI,
             Icons.smart_toy_outlined,
             () => Navigator.push(
               context,
