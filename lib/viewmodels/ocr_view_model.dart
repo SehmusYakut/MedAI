@@ -5,203 +5,262 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 import 'package:uuid/uuid.dart';
 import '../models/question.dart';
+import '../services/ai_service.dart';
+import '../services/ocr_service.dart';
+
+enum OcrSessionPhase { idle, picking, recognizing, askingAi, complete, error }
 
 class OCRViewModel extends ChangeNotifier {
   final _textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
   final _uuid = const Uuid();
+  late final OCRService _ocrService;
+  late final AIServiceManager _aiManager;
   final List<Question> _questions = [];
-  bool _isProcessing = false;
 
-  // Medical subjects for categorization
+  // Active OCR session state
+  OcrSessionPhase _sessionPhase = OcrSessionPhase.idle;
+  File? _sessionImage;
+  String _sessionText = '';
+  final Map<String, String> _sessionAiResponses = {};
+  String? _sessionError;
+
+  OCRViewModel({OCRService? ocrService, AIServiceManager? aiManager}) {
+    _ocrService = ocrService ?? OCRService();
+    _aiManager = aiManager ?? AIServiceManager();
+  }
+
+  // Existing question list getters
+  List<Question> get questions => List.unmodifiable(_questions);
+  bool get isProcessing => _sessionPhase == OcrSessionPhase.recognizing;
+
+  // Session getters
+  OcrSessionPhase get sessionPhase => _sessionPhase;
+  File? get sessionImage => _sessionImage;
+  String get sessionText => _sessionText;
+  Map<String, String> get sessionAiResponses =>
+      Map.unmodifiable(_sessionAiResponses);
+  String? get sessionError => _sessionError;
+  bool get hasSessionText => _sessionText.isNotEmpty;
+  bool get hasAiResponses => _sessionAiResponses.isNotEmpty;
+
   static const List<String> medicalSubjects = [
-    'Anatomy',
-    'Physiology',
-    'Biochemistry',
-    'Pathology',
-    'Pharmacology',
-    'Microbiology',
-    'Internal Medicine',
-    'Surgery',
-    'Pediatrics',
-    'Obstetrics',
-    'Gynecology',
-    'Psychiatry',
-    'Emergency Medicine',
+    'Anatomy', 'Physiology', 'Biochemistry', 'Pathology', 'Pharmacology',
+    'Microbiology', 'Internal Medicine', 'Surgery', 'Pediatrics',
+    'Obstetrics', 'Gynecology', 'Psychiatry', 'Emergency Medicine',
     'Family Medicine',
   ];
 
-  // Exam types
   static const List<String> examTypes = [
-    'USMLE Step 1',
-    'USMLE Step 2 CK',
-    'USMLE Step 3',
-    'MCQ',
-    'OSCE',
-    'Clinical Vignette',
-    'Case Study',
+    'USMLE Step 1', 'USMLE Step 2 CK', 'USMLE Step 3',
+    'MCQ', 'OSCE', 'Clinical Vignette', 'Case Study',
   ];
 
-  List<Question> get questions => List.unmodifiable(_questions);
-  bool get isProcessing => _isProcessing;
+  /// Picks an image and runs OCR in one atomic session step.
+  Future<void> captureAndRecognize({required bool fromCamera}) async {
+    _sessionPhase = OcrSessionPhase.picking;
+    _sessionError = null;
+    notifyListeners();
 
-  // Method for testing
+    try {
+      final imageFile =
+          await _ocrService.pickImage(fromCamera: fromCamera);
+      if (imageFile == null) {
+        _sessionPhase =
+            _sessionImage != null ? OcrSessionPhase.complete : OcrSessionPhase.idle;
+        notifyListeners();
+        return;
+      }
+      _sessionImage = imageFile;
+      _sessionText = '';
+      _sessionAiResponses.clear();
+      _sessionPhase = OcrSessionPhase.recognizing;
+      notifyListeners();
+
+      _sessionText = await _runOcr(imageFile);
+      _sessionPhase = OcrSessionPhase.complete;
+    } catch (e) {
+      _sessionError = e.toString();
+      _sessionPhase = OcrSessionPhase.error;
+    }
+    notifyListeners();
+  }
+
+  /// Sends the recognized text to all configured AI services.
+  Future<void> analyzeWithAI() async {
+    if (_sessionText.isEmpty) return;
+    _sessionPhase = OcrSessionPhase.askingAi;
+    _sessionAiResponses.clear();
+    _sessionError = null;
+    notifyListeners();
+
+    try {
+      final services = await _aiManager.getServices();
+      if (services.isEmpty) {
+        _sessionError = 'no_ai_services';
+        _sessionPhase = OcrSessionPhase.error;
+        notifyListeners();
+        return;
+      }
+      for (final service in services) {
+        try {
+          _sessionAiResponses[service.name] =
+              await service.generateResponse(_buildMedicalPrompt());
+        } catch (e) {
+          _sessionAiResponses[service.name] = '**Error:** ${e.toString()}';
+        }
+        notifyListeners();
+      }
+      _sessionPhase = OcrSessionPhase.complete;
+    } catch (e) {
+      _sessionError = e.toString();
+      _sessionPhase = OcrSessionPhase.error;
+    }
+    notifyListeners();
+  }
+
+  void updateSessionText(String text) {
+    _sessionText = text;
+    _sessionAiResponses.clear();
+    notifyListeners();
+  }
+
+  void resetSession() {
+    _sessionPhase = OcrSessionPhase.idle;
+    _sessionImage = null;
+    _sessionText = '';
+    _sessionAiResponses.clear();
+    _sessionError = null;
+    notifyListeners();
+  }
+
+  void clearSessionError() {
+    _sessionPhase =
+        _sessionImage != null ? OcrSessionPhase.complete : OcrSessionPhase.idle;
+    _sessionError = null;
+    notifyListeners();
+  }
+
+  // ── Internal helpers ──────────────────────────────────────────────────────
+
+  Future<String> _runOcr(File imageFile) async {
+    final inputImage = InputImage.fromFile(imageFile);
+    final result = await _textRecognizer.processImage(inputImage);
+    final processed = processRecognizedText(result.text);
+    final savedPath = await _saveImage(imageFile);
+    _questions.add(Question(
+      id: _uuid.v4(),
+      text: processed,
+      imagePath: savedPath,
+      createdAt: DateTime.now(),
+    ));
+    return processed;
+  }
+
+  String _buildMedicalPrompt() => '''
+Analyze this medical question and provide a structured, evidence-based answer:
+
+$_sessionText
+
+Use the following markdown structure:
+## Answer
+State the correct answer concisely.
+
+## Explanation
+Explain the underlying concept and reasoning.
+
+## Key Points
+- Must-know facts as bullet points
+
+## ⚠️ Contraindications / Warnings
+(Include only if clinically relevant)
+''';
+
+  // ── Public helpers kept for backward compatibility ────────────────────────
+
   void addQuestion(Question question) {
     _questions.add(question);
     notifyListeners();
   }
 
-  Future<String> processImage(File imageFile) async {
-    _isProcessing = true;
-    notifyListeners();
-
-    try {
-      debugPrint('OCRViewModel: Processing image: ${imageFile.path}');
-
-      final inputImage = InputImage.fromFile(imageFile);
-      final recognizedText = await _textRecognizer.processImage(inputImage);
-
-      debugPrint('OCRViewModel: Recognized text: ${recognizedText.text}');
-
-      // Save the image to app's local storage
-      final savedImagePath = await _saveImage(imageFile);
-
-      // Process and clean the recognized text
-      final processedText = processRecognizedText(recognizedText.text);
-
-      debugPrint('OCRViewModel: Processed text: $processedText');
-
-      // Create a new question from the recognized text
-      final question = Question(
-        id: _uuid.v4(),
-        text: processedText,
-        imagePath: savedImagePath,
-        createdAt: DateTime.now(),
-      );
-
-      _questions.add(question);
-      notifyListeners();
-
-      return processedText;
-    } catch (e) {
-      debugPrint('OCRViewModel Error: $e');
-      rethrow;
-    } finally {
-      _isProcessing = false;
-      notifyListeners();
-    }
-  }
-
-  // Made public for testing
+  /// Exposed for testing.
   String processRecognizedText(String text) {
-    // Remove extra whitespace and normalize line breaks
     text = text.replaceAll(RegExp(r'\s+'), ' ').trim();
-
-    // Fix common OCR mistakes in medical terms
-    final commonMistakes = {
-      'rnicro': 'micro',
-      'rnicrobiology': 'microbiology',
-      'rnicroscopy': 'microscopy',
-      'rnicroorganism': 'microorganism',
-      'rnicrobial': 'microbial',
-      'rnicrobe': 'microbe',
-      'rnicrobiome': 'microbiome',
-      'rnicrobiota': 'microbiota',
-      'rnicrobiologist': 'microbiologist',
-      'rnicroscopic': 'microscopic',
+    const fixes = {
+      'rnicro': 'micro', 'rnicrobiology': 'microbiology',
+      'rnicroscopy': 'microscopy', 'rnicroorganism': 'microorganism',
+      'rnicrobial': 'microbial', 'rnicrobe': 'microbe',
+      'rnicrobiome': 'microbiome', 'rnicrobiota': 'microbiota',
+      'rnicrobiologist': 'microbiologist', 'rnicroscopic': 'microscopic',
     };
-
-    commonMistakes.forEach((mistake, correction) {
+    fixes.forEach((mistake, correction) {
       text = text.replaceAll(mistake, correction);
     });
-
     return text;
   }
 
   Future<String> _saveImage(File imageFile) async {
     final directory = await getApplicationDocumentsDirectory();
     final fileName = '${_uuid.v4()}${path.extension(imageFile.path)}';
-    final savedImage = await imageFile.copy('${directory.path}/$fileName');
-    return savedImage.path;
+    final saved = await imageFile.copy('${directory.path}/$fileName');
+    return saved.path;
   }
+
+  // ── Analytics ─────────────────────────────────────────────────────────────
+
+  List<Question> getQuestionsBySubject(String subject) =>
+      _questions.where((q) => q.subject == subject).toList();
+
+  List<Question> getQuestionsByDifficulty(String difficulty) =>
+      _questions.where((q) => q.difficulty == difficulty).toList();
+
+  List<Question> getQuestionsByExamType(String examType) =>
+      _questions.where((q) => q.examType == examType).toList();
+
+  List<Question> getQuestionsByYear(int year) =>
+      _questions.where((q) => q.year == year).toList();
 
   void addQuestionAttempt(String questionId, QuestionAttempt attempt) {
-    final questionIndex = _questions.indexWhere((q) => q.id == questionId);
-    if (questionIndex != -1) {
-      final question = _questions[questionIndex];
-      final updatedQuestion = question.copyWith(
-        attempts: [...question.attempts, attempt],
-      );
-      _questions[questionIndex] = updatedQuestion;
-      notifyListeners();
-    }
-  }
-
-  List<Question> getQuestionsBySubject(String subject) {
-    return _questions.where((q) => q.subject == subject).toList();
-  }
-
-  List<Question> getQuestionsByDifficulty(String difficulty) {
-    return _questions.where((q) => q.difficulty == difficulty).toList();
-  }
-
-  List<Question> getQuestionsByExamType(String examType) {
-    return _questions.where((q) => q.examType == examType).toList();
-  }
-
-  List<Question> getQuestionsByYear(int year) {
-    return _questions.where((q) => q.year == year).toList();
+    final index = _questions.indexWhere((q) => q.id == questionId);
+    if (index == -1) return;
+    _questions[index] = _questions[index].copyWith(
+      attempts: [..._questions[index].attempts, attempt],
+    );
+    notifyListeners();
   }
 
   Map<String, double> getPerformanceBySubject() {
-    final performance = <String, List<bool>>{};
-
-    for (final question in _questions) {
-      if (question.subject != null) {
-        performance.putIfAbsent(question.subject!, () => []);
-        final attempts = question.attempts;
-        if (attempts.isNotEmpty) {
-          performance[question.subject!]!.add(attempts.last.isCorrect);
-        }
-      }
+    final data = <String, List<bool>>{};
+    for (final q in _questions) {
+      if (q.subject == null || q.attempts.isEmpty) continue;
+      data.putIfAbsent(q.subject!, () => []).add(q.attempts.last.isCorrect);
     }
-
-    return performance.map((subject, attempts) {
-      final successRate = attempts.isEmpty
-          ? 0.0
-          : attempts.where((correct) => correct).length / attempts.length;
-      return MapEntry(subject, successRate);
-    });
+    return data.map((subject, results) => MapEntry(
+        subject,
+        results.isEmpty
+            ? 0.0
+            : results.where((r) => r).length / results.length));
   }
 
   Map<String, Duration> getAverageTimeBySubject() {
-    final times = <String, List<Duration>>{};
-
-    for (final question in _questions) {
-      if (question.subject != null) {
-        times.putIfAbsent(question.subject!, () => []);
-        final attempts = question.attempts;
-        if (attempts.isNotEmpty) {
-          times[question.subject!]!.add(attempts.last.timeSpent);
-        }
-      }
+    final data = <String, List<Duration>>{};
+    for (final q in _questions) {
+      if (q.subject == null || q.attempts.isEmpty) continue;
+      data.putIfAbsent(q.subject!, () => []).add(q.attempts.last.timeSpent);
     }
-
-    return times.map((subject, durations) {
-      final averageSeconds = durations.isEmpty
-          ? 0.0
-          : durations.map((d) => d.inSeconds).reduce((a, b) => a + b) /
-              durations.length;
-      return MapEntry(subject, Duration(seconds: averageSeconds.round()));
-    });
+    return data.map((subject, durations) => MapEntry(
+        subject,
+        Duration(
+            seconds: durations.isEmpty
+                ? 0
+                : (durations.map((d) => d.inSeconds).reduce((a, b) => a + b) /
+                        durations.length)
+                    .round())));
   }
 
   Map<String, int> getQuestionCountBySubject() {
     final counts = <String, int>{};
-    for (final question in _questions) {
-      if (question.subject != null) {
-        final subject = question.subject!;
-        counts[subject] = (counts[subject] ?? 0) + 1;
-      }
+    for (final q in _questions) {
+      if (q.subject != null) counts[q.subject!] = (counts[q.subject!] ?? 0) + 1;
     }
     return counts;
   }
@@ -209,6 +268,7 @@ class OCRViewModel extends ChangeNotifier {
   @override
   void dispose() {
     _textRecognizer.close();
+    _ocrService.dispose();
     super.dispose();
   }
 }

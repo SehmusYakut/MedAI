@@ -93,6 +93,33 @@ class AppLocalizations {
       'no_text_recognized': 'No text recognized',
       'scan_first': 'Please scan an image first',
       'language': 'Language',
+      'today_schedule': 'Today\'s Schedule',
+      'no_programs_today': 'No active programs today',
+      'active_today': 'active today',
+      'next_reminder': 'Next',
+      'tools': 'Quick Tools',
+      'scan_medical_question': 'Scan a Medical Question',
+      'tap_to_scan': 'Tap camera or gallery to scan',
+      'recognized_text': 'Recognized Text',
+      'ai_analysis': 'AI Analysis',
+      'analyzing_with_ai': 'Analyzing...',
+      'no_ai_configured': 'No AI service configured. Please set up an API key first.',
+      'configure_api_keys': 'Configure Keys',
+      'no_text_in_image': 'No text found. Try a clearer photo.',
+      'retry': 'Retry',
+      'copied': 'Copied!',
+      'copy_response': 'Copy',
+      'ai_responses': 'AI Responses',
+      'quick_presets': 'Quick Presets',
+      'preset_daily': 'Daily',
+      'preset_weekdays': 'Weekdays',
+      'preset_weekends': 'Weekends',
+      'preset_mwf': 'M / W / F',
+      'quick_times': 'Quick Times',
+      'time_morning': 'Morning 8:00',
+      'time_noon': 'Noon 13:00',
+      'time_evening': 'Evening 20:00',
+      'add_description': 'Add description',
     },
     'tr': {
       'app_title': 'MedAI',
@@ -174,6 +201,33 @@ class AppLocalizations {
       'no_text_recognized': 'Metin tanınmadı',
       'scan_first': 'Lütfen önce bir resim tarayın',
       'language': 'Dil',
+      'today_schedule': 'Bugünkü Program',
+      'no_programs_today': 'Bugün aktif program yok',
+      'active_today': 'bugün aktif',
+      'next_reminder': 'Sonraki',
+      'tools': 'Hızlı Araçlar',
+      'scan_medical_question': 'Tıbbi Soru Tara',
+      'tap_to_scan': 'Taramak için kamera veya galeriye dokunun',
+      'recognized_text': 'Tanınan Metin',
+      'ai_analysis': 'Yapay Zeka Analizi',
+      'analyzing_with_ai': 'Analiz ediliyor...',
+      'no_ai_configured': 'Yapay zeka hizmeti yapılandırılmadı. Lütfen önce bir API anahtarı ekleyin.',
+      'configure_api_keys': 'Anahtarları Yapılandır',
+      'no_text_in_image': 'Metinde metin bulunamadı. Daha net bir fotoğraf deneyin.',
+      'retry': 'Tekrar Dene',
+      'copied': 'Kopyalandı!',
+      'copy_response': 'Kopyala',
+      'ai_responses': 'Yapay Zeka Yanıtları',
+      'quick_presets': 'Hızlı Şablonlar',
+      'preset_daily': 'Her Gün',
+      'preset_weekdays': 'Hafta İçi',
+      'preset_weekends': 'Hafta Sonu',
+      'preset_mwf': 'P / Ç / C',
+      'quick_times': 'Hızlı Saatler',
+      'time_morning': 'Sabah 8:00',
+      'time_noon': 'Öğle 13:00',
+      'time_evening': 'Akşam 20:00',
+      'add_description': 'Açıklama ekle',
     },
   };
 
@@ -209,6 +263,35 @@ class AppLocalizations {
   String get noPrograms => translate('no_programs');
   String get createFirstProgram => translate('create_first_program');
   String get language => translate('language');
+  String get todaySchedule => translate('today_schedule');
+  String get noProgramsToday => translate('no_programs_today');
+  String get activeToday => translate('active_today');
+  String get nextReminder => translate('next_reminder');
+  String get tools => translate('tools');
+  String get scanMedicalQuestion => translate('scan_medical_question');
+  String get tapToScan => translate('tap_to_scan');
+  String get recognizedText => translate('recognized_text');
+  String get aiAnalysis => translate('ai_analysis');
+  String get analyzingWithAi => translate('analyzing_with_ai');
+  String get noAiConfigured => translate('no_ai_configured');
+  String get configureApiKeys => translate('configure_api_keys');
+  String get noTextInImage => translate('no_text_in_image');
+  String get retry => translate('retry');
+  String get copied => translate('copied');
+  String get copyResponse => translate('copy_response');
+  String get aiResponses => translate('ai_responses');
+  String get quickPresets => translate('quick_presets');
+  String get presetDaily => translate('preset_daily');
+  String get presetWeekdays => translate('preset_weekdays');
+  String get presetWeekends => translate('preset_weekends');
+  String get presetMwf => translate('preset_mwf');
+  String get quickTimes => translate('quick_times');
+  String get timeMorning => translate('time_morning');
+  String get timeNoon => translate('time_noon');
+  String get timeEvening => translate('time_evening');
+  String get addDescription => translate('add_description');
+  String get takePhoto => translate('take_photo');
+  String get selectImage => translate('select_image');
 }
 
 class _AppLocalizationsDelegate
