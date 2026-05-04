@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/ai_response.dart';
 import '../services/ai_service.dart';
+import 'api_key_tour_screen.dart';
 
 class AskAIScreen extends StatefulWidget {
   const AskAIScreen({super.key});
@@ -166,10 +167,32 @@ class _AskAIScreenState extends State<AskAIScreen> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    FilledButton.icon(
-                      onPressed: _navigateToApiKey,
-                      icon: const Icon(Icons.key),
-                      label: const Text('Add API Key'),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: FilledButton.icon(
+                            onPressed: _navigateToApiKey,
+                            icon: const Icon(Icons.key),
+                            label: const Text('Add API Key'),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const ApiKeyTourScreen(),
+                                ),
+                              );
+                            },
+                            icon: const Icon(Icons.school_outlined),
+                            label: const Text('Learn How'),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                   if (_availableServices.isNotEmpty) ...[

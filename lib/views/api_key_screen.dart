@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/api_key_service.dart';
+import 'api_key_tour_screen.dart';
 
 class ApiKeyScreen extends StatefulWidget {
   const ApiKeyScreen({super.key});
@@ -14,11 +15,20 @@ class _ApiKeyScreenState extends State<ApiKeyScreen> {
   final _chatGPTKeyController = TextEditingController();
   final _mistralKeyController = TextEditingController();
   final _geminiKeyController = TextEditingController();
+  final _claudeKeyController = TextEditingController();
+  final _groqKeyController = TextEditingController();
+  final _huggingFaceKeyController = TextEditingController();
+  final _openRouterKeyController = TextEditingController();
+
   late ApiKeyService _apiKeyService;
   String? _currentApiKey;
   String? _currentChatGPTKey;
   String? _currentMistralKey;
   String? _currentGeminiKey;
+  String? _currentClaudeKey;
+  String? _currentGroqKey;
+  String? _currentHuggingFaceKey;
+  String? _currentOpenRouterKey;
   DateTime? _lastUpdated;
 
   @override
@@ -34,6 +44,10 @@ class _ApiKeyScreenState extends State<ApiKeyScreen> {
       _currentChatGPTKey = _apiKeyService.getChatGPTApiKey();
       _currentMistralKey = _apiKeyService.getMistralApiKey();
       _currentGeminiKey = _apiKeyService.getGeminiApiKey();
+      _currentClaudeKey = _apiKeyService.getClaudeApiKey();
+      _currentGroqKey = _apiKeyService.getGroqApiKey();
+      _currentHuggingFaceKey = _apiKeyService.getHuggingFaceApiKey();
+      _currentOpenRouterKey = _apiKeyService.getOpenRouterApiKey();
       _lastUpdated = _apiKeyService.getLastUpdated();
     });
   }
@@ -86,6 +100,56 @@ class _ApiKeyScreenState extends State<ApiKeyScreen> {
     }
   }
 
+  Future<void> _saveClaudeApiKey() async {
+    if (_claudeKeyController.text.isNotEmpty) {
+      await _apiKeyService.setClaudeApiKey(_claudeKeyController.text);
+      await _loadApiKeys();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Claude API key saved successfully')),
+        );
+      }
+    }
+  }
+
+  Future<void> _saveGroqApiKey() async {
+    if (_groqKeyController.text.isNotEmpty) {
+      await _apiKeyService.setGroqApiKey(_groqKeyController.text);
+      await _loadApiKeys();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Groq API key saved successfully')),
+        );
+      }
+    }
+  }
+
+  Future<void> _saveHuggingFaceApiKey() async {
+    if (_huggingFaceKeyController.text.isNotEmpty) {
+      await _apiKeyService.setHuggingFaceApiKey(_huggingFaceKeyController.text);
+      await _loadApiKeys();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('HuggingFace API key saved successfully')),
+        );
+      }
+    }
+  }
+
+  Future<void> _saveOpenRouterApiKey() async {
+    if (_openRouterKeyController.text.isNotEmpty) {
+      await _apiKeyService.setOpenRouterApiKey(_openRouterKeyController.text);
+      await _loadApiKeys();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('OpenRouter API key saved successfully')),
+        );
+      }
+    }
+  }
+
   Future<void> _clearApiKey() async {
     await _apiKeyService.clearApiKey();
     await _loadApiKeys();
@@ -111,12 +175,96 @@ class _ApiKeyScreenState extends State<ApiKeyScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('API Key Management'),
+        actions: [
+          Tooltip(
+            message: 'Learn how to get API keys',
+            child: IconButton(
+              icon: const Icon(Icons.help_outline),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ApiKeyTourScreen(),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // Tour Banner - Shows when no API keys are set
+            if (_currentChatGPTKey == null &&
+                _currentMistralKey == null &&
+                _currentGeminiKey == null &&
+                _currentClaudeKey == null &&
+                _currentGroqKey == null &&
+                _currentHuggingFaceKey == null &&
+                _currentOpenRouterKey == null)
+              Card(
+                color: Colors.blue.shade50,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.info_outline,
+                            color: Colors.blue.shade700,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              'Get Started with AI Services',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(
+                                    color: Colors.blue.shade700,
+                                  ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Learn how to get free API keys from Google Gemini or Groq to start using AI features.',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        width: double.infinity,
+                        child: FilledButton.tonalIcon(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const ApiKeyTourScreen(),
+                              ),
+                            );
+                          },
+                          icon: const Icon(Icons.school),
+                          label: const Text('Take a Tour'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            if (_currentChatGPTKey == null &&
+                _currentMistralKey == null &&
+                _currentGeminiKey == null &&
+                _currentClaudeKey == null &&
+                _currentGroqKey == null &&
+                _currentHuggingFaceKey == null &&
+                _currentOpenRouterKey == null)
+              const SizedBox(height: 20),
             // General API Key Section
             Card(
               child: Padding(
@@ -277,6 +425,118 @@ class _ApiKeyScreenState extends State<ApiKeyScreen> {
                     ),
                     const SizedBox(height: 16),
 
+                    // Claude API Key
+                    Text(
+                      'Claude API Key',
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
+                    const SizedBox(height: 8),
+                    if (_currentClaudeKey != null) ...[
+                      Text(
+                        _currentClaudeKey!,
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      ),
+                      const SizedBox(height: 8),
+                    ],
+                    const SizedBox(height: 8),
+                    TextFormField(
+                      controller: _claudeKeyController,
+                      decoration: const InputDecoration(
+                        labelText: 'Claude API Key',
+                        hintText: 'Enter your Claude API key',
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    FilledButton(
+                      onPressed: _saveClaudeApiKey,
+                      child: const Text('Save Claude API Key'),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Groq API Key
+                    Text(
+                      'Groq API Key',
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
+                    const SizedBox(height: 8),
+                    if (_currentGroqKey != null) ...[
+                      Text(
+                        _currentGroqKey!,
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      ),
+                      const SizedBox(height: 8),
+                    ],
+                    const SizedBox(height: 8),
+                    TextFormField(
+                      controller: _groqKeyController,
+                      decoration: const InputDecoration(
+                        labelText: 'Groq API Key',
+                        hintText: 'Enter your Groq API key',
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    FilledButton(
+                      onPressed: _saveGroqApiKey,
+                      child: const Text('Save Groq API Key'),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // HuggingFace API Key
+                    Text(
+                      'HuggingFace API Key',
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
+                    const SizedBox(height: 8),
+                    if (_currentHuggingFaceKey != null) ...[
+                      Text(
+                        _currentHuggingFaceKey!,
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      ),
+                      const SizedBox(height: 8),
+                    ],
+                    const SizedBox(height: 8),
+                    TextFormField(
+                      controller: _huggingFaceKeyController,
+                      decoration: const InputDecoration(
+                        labelText: 'HuggingFace API Key',
+                        hintText: 'Enter your HuggingFace API key',
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    FilledButton(
+                      onPressed: _saveHuggingFaceApiKey,
+                      child: const Text('Save HuggingFace API Key'),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // OpenRouter API Key
+                    Text(
+                      'OpenRouter API Key',
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
+                    const SizedBox(height: 8),
+                    if (_currentOpenRouterKey != null) ...[
+                      Text(
+                        _currentOpenRouterKey!,
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      ),
+                      const SizedBox(height: 8),
+                    ],
+                    const SizedBox(height: 8),
+                    TextFormField(
+                      controller: _openRouterKeyController,
+                      decoration: const InputDecoration(
+                        labelText: 'OpenRouter API Key',
+                        hintText: 'Enter your OpenRouter API key',
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    FilledButton(
+                      onPressed: _saveOpenRouterApiKey,
+                      child: const Text('Save OpenRouter API Key'),
+                    ),
+                    const SizedBox(height: 16),
+
                     // Clear All Button
                     OutlinedButton(
                       onPressed: _clearAllApiKeys,
@@ -298,6 +558,10 @@ class _ApiKeyScreenState extends State<ApiKeyScreen> {
     _chatGPTKeyController.dispose();
     _mistralKeyController.dispose();
     _geminiKeyController.dispose();
+    _claudeKeyController.dispose();
+    _groqKeyController.dispose();
+    _huggingFaceKeyController.dispose();
+    _openRouterKeyController.dispose();
     super.dispose();
   }
 }
