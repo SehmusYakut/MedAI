@@ -79,9 +79,10 @@ class _ApiKeyTourScreenState extends State<ApiKeyTourScreen>
                       Expanded(
                         child: Text(
                           'FREE Services (Recommended for Beginners)',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                color: Colors.green.shade700,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    color: Colors.green.shade700,
+                                  ),
                         ),
                       ),
                     ],
@@ -125,7 +126,8 @@ class _ApiKeyTourScreenState extends State<ApiKeyTourScreen>
             ],
             url: 'https://console.groq.com',
             color: Colors.purple,
-            benefit: '✅ FREE with 14,000 requests/min\n✅ Lightning fast\n✅ Great for testing',
+            benefit:
+                '✅ FREE with 14,000 requests/min\n✅ Lightning fast\n✅ Great for testing',
           ),
           const SizedBox(height: 24),
           Card(
@@ -142,9 +144,10 @@ class _ApiKeyTourScreenState extends State<ApiKeyTourScreen>
                       Expanded(
                         child: Text(
                           'PREMIUM Services (Paid, but Powerful)',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                color: Colors.orange.shade700,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    color: Colors.orange.shade700,
+                                  ),
                         ),
                       ),
                     ],
@@ -172,7 +175,8 @@ class _ApiKeyTourScreenState extends State<ApiKeyTourScreen>
             ],
             url: 'https://console.anthropic.com',
             color: Colors.indigo,
-            benefit: '🎯 Excellent reasoning\n📚 Best for medical\n💪 Most capable',
+            benefit:
+                '🎯 Excellent reasoning\n📚 Best for medical\n💪 Most capable',
           ),
           const SizedBox(height: 12),
           _buildServiceCard(
@@ -188,7 +192,7 @@ class _ApiKeyTourScreenState extends State<ApiKeyTourScreen>
             ],
             url: 'https://platform.openai.com',
             color: Colors.green,
-            benefit: '⭐ Most popular\n💰 Pay-as-you-go\n📈 $5 free trial',
+            benefit: '⭐ Most popular\n💰 Pay-as-you-go\n📈 \$5 free trial',
           ),
         ],
       ),
@@ -261,7 +265,7 @@ class _ApiKeyTourScreenState extends State<ApiKeyTourScreen>
         'name': 'ChatGPT (OpenAI)',
         'icon': '🤖',
         'url': 'https://platform.openai.com',
-        'pricing': 'Paid ($5 trial)',
+        'pricing': 'Paid (\$5 trial)',
         'steps': [
           'Visit: platform.openai.com',
           'Sign up or log in',
@@ -407,8 +411,9 @@ class _ApiKeyTourScreenState extends State<ApiKeyTourScreen>
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Text(
-                                    entry.value as String,
-                                    style: Theme.of(context).textTheme.bodyMedium,
+                                    entry.value,
+                                    style:
+                                        Theme.of(context).textTheme.bodyMedium,
                                   ),
                                 ),
                               ],

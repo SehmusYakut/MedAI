@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'api_key_tour_screen.dart';
+import '../api_key_tour_screen.dart';
 
 class ApiKeyInfoCard extends StatelessWidget {
   final String title;

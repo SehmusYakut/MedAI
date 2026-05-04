@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_markdown/flutter_markdown.dart';
 import '../../models/ai_response.dart';
 import '../../viewmodels/home_view_model.dart';
 import '../../l10n/app_localizations.dart';
@@ -481,57 +480,4 @@ class _SnippetCard extends StatelessWidget {
 }
 
 // ── Medical Markdown stylesheet ───────────────────────────────────────────────
-
-MarkdownStyleSheet _medicalMarkdownStyle(BuildContext context) {
-  final tt = Theme.of(context).textTheme;
-  final cs = Theme.of(context).colorScheme;
-
-  return MarkdownStyleSheet(
-    h1: tt.titleLarge
-        ?.copyWith(fontWeight: FontWeight.bold, color: cs.primary, height: 1.8),
-    h2: tt.titleMedium
-        ?.copyWith(fontWeight: FontWeight.bold, color: cs.primary, height: 1.8),
-    h3: tt.titleSmall?.copyWith(
-        fontWeight: FontWeight.w600, color: cs.secondary, height: 1.6),
-    p: tt.bodyMedium?.copyWith(height: 1.6),
-    // Contraindications / warnings appear as **bold** → rendered in error color
-    strong:
-        TextStyle(fontWeight: FontWeight.w700, color: cs.error, inherit: true),
-    em: TextStyle(
-        fontStyle: FontStyle.italic,
-        color: cs.onSurface.withValues(alpha: 0.85),
-        inherit: true),
-    listBullet: tt.bodyMedium?.copyWith(color: cs.primary),
-    blockquoteDecoration: BoxDecoration(
-      color: cs.errorContainer.withValues(alpha: 0.25),
-      borderRadius: BorderRadius.circular(4),
-      border: Border(left: BorderSide(color: cs.error, width: 4)),
-    ),
-    blockquotePadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-    // Dosage tables
-    tableHead: TextStyle(
-        fontWeight: FontWeight.bold, color: cs.onSurface, inherit: true),
-    tableBody: tt.bodySmall,
-    tableBorder: TableBorder.all(
-      color: cs.outlineVariant,
-      width: 1,
-      borderRadius: BorderRadius.circular(4),
-    ),
-    tableHeadAlign: TextAlign.center,
-    tableCellsPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-    // Inline code (e.g. drug names)
-    code: TextStyle(
-      fontFamily: 'monospace',
-      backgroundColor: cs.surfaceContainerHighest,
-      color: cs.secondary,
-      fontSize: 13,
-      inherit: true,
-    ),
-    codeblockDecoration: BoxDecoration(
-      color: cs.surfaceContainerHighest,
-      borderRadius: BorderRadius.circular(8),
-    ),
-    codeblockPadding: const EdgeInsets.all(12),
-    blockSpacing: 10,
-  );
-}
+// Note: Markdown styling is handled in ocr_screen.dart
