@@ -43,7 +43,7 @@ dependencies:
   provider: ^6.0.5
   path_provider: ^2.1.1
   shared_preferences: ^2.5.5
-  flutter_markdown: ^0.7.3
+  flutter_markdown_plus: ^1.0.7
   flutter_dotenv: ^5.1.0
   uuid: ^4.2.1
   path: ^1.8.3
@@ -54,6 +54,8 @@ dependencies:
   url_launcher: ^6.2.0
   purchases_flutter: ^10.2.0
   google_sign_in: ^7.2.0
+  firebase_core: ^4.9.0
+  firebase_auth: ^6.5.1
 
 dev_dependencies:
   flutter_test:

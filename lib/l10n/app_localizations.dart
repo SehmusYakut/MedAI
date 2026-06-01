@@ -120,6 +120,19 @@ class AppLocalizations {
       'time_noon': 'Noon 13:00',
       'time_evening': 'Evening 20:00',
       'add_description': 'Add description',
+      'your_clinical_co_pilot': 'Your Clinical AI Co-Pilot. Instant Evidence-Based Diagnostic Insights.',
+      'continue_with_google': 'Continue with Google',
+      'sign_in_failed': 'Sign-in failed',
+      'signing_in': 'Signing in...',
+      'clinical_level': 'Clinical Level / Academic Track',
+      'clinical_level_desc': 'Tailor AI outputs to your medical training stage',
+      'advanced_legacy_tools': 'Advanced Legacy Tools',
+      'ocr_scanner_desc': 'Decode patient cases, prescription notes, and exam diagrams with ML recognition.',
+      'theme_mode': 'Dark Mode',
+      'welcome_doctor': 'Welcome back, Doctor',
+      'select_track_in_settings': 'Select your curriculum track in settings',
+      'current_track': 'Current Track: ',
+      'start_clinical_query': 'Start Clinical Query',
     },
     'tr': {
       'app_title': 'MedAI',
@@ -228,6 +241,19 @@ class AppLocalizations {
       'time_noon': 'Öğle 13:00',
       'time_evening': 'Akşam 20:00',
       'add_description': 'Açıklama ekle',
+      'your_clinical_co_pilot': 'Klinik Yapay Zeka Asistanınız. Anında Kanıta Dayalı Teşhis Analizleri.',
+      'continue_with_google': 'Google ile Devam Et',
+      'sign_in_failed': 'Giriş başarısız oldu',
+      'signing_in': 'Giriş yapılıyor...',
+      'clinical_level': 'Klinik Seviye / Akademik Dönem',
+      'clinical_level_desc': 'Yapay zeka yanıtlarını eğitim seviyenize göre optimize edin',
+      'advanced_legacy_tools': 'Gelişmiş Eski Araçlar',
+      'ocr_scanner_desc': 'Hasta vakalarını, reçete notlarını ve sınav şemalarını makine öğrenimi tanıma özelliğiyle anında çözün.',
+      'theme_mode': 'Karanlık Tema',
+      'welcome_doctor': 'Hoş Geldiniz, Doktor',
+      'select_track_in_settings': 'Ayarlardan müfredat dönemini seçin',
+      'current_track': 'Aktif Dönem: ',
+      'start_clinical_query': 'Klinik Vaka Sorgusu Başlat',
     },
   };
 
@@ -292,6 +318,24 @@ class AppLocalizations {
   String get addDescription => translate('add_description');
   String get takePhoto => translate('take_photo');
   String get selectImage => translate('select_image');
+
+  String get yourQuestion => translate('your_question');
+  String get askAnything => translate('ask_anything');
+  String get enterQuestion => translate('enter_question');
+  
+  String get yourClinicalCoPilot => translate('your_clinical_co_pilot');
+  String get continueWithGoogle => translate('continue_with_google');
+  String get signInFailed => translate('sign_in_failed');
+  String get signingIn => translate('signing_in');
+  String get clinicalLevel => translate('clinical_level');
+  String get clinicalLevelDesc => translate('clinical_level_desc');
+  String get advancedLegacyTools => translate('advanced_legacy_tools');
+  String get ocrScannerDesc => translate('ocr_scanner_desc');
+  String get themeModeLabel => translate('theme_mode');
+  String get welcomeDoctor => translate('welcome_doctor');
+  String get selectTrackInSettings => translate('select_track_in_settings');
+  String get currentTrackLabel => translate('current_track');
+  String get startClinicalQuery => translate('start_clinical_query');
 }
 
 class _AppLocalizationsDelegate

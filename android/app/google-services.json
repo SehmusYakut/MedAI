@@ -12,7 +12,20 @@
           "package_name": "com.example.medway"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "329755241965-rmn3tgra7ktngsp054avr0pgp053850m.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.medway",
+            "certificate_hash": "0436fe80c1c5770b3b805b2d546a0799b4325906"
+          }
+        },
+        {
+          "client_id": "329755241965-g6qq9bces1gn0kbqpausom37cvppav2f.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDDrekgYGQebh1AK2UdK4O8e8DVG66KuAc"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "329755241965-g6qq9bces1gn0kbqpausom37cvppav2f.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "329755241965-rr4m1890i7mr8p36frnfjjljvr5pa499.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.medway"
+              }
+            }
+          ]
         }
       }
     }

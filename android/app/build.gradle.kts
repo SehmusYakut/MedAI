@@ -24,6 +24,7 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
+        multiDexEnabled = true
         
         // Add this for ML Kit text recognition
         ndk {
@@ -46,6 +47,10 @@ android {
     buildFeatures {
         buildConfig = true
     }
+
+    aaptOptions {
+        noCompress("")
+    }
 }
 
 dependencies {
@@ -57,8 +62,6 @@ dependencies {
     implementation("com.google.mlkit:text-recognition-devanagari:16.0.0")
     implementation("com.google.mlkit:text-recognition-japanese:16.0.0")
     implementation("com.google.mlkit:text-recognition-korean:16.0.0")
-    implementation("com.google.android.play:core:1.10.3")
-    implementation("com.google.android.play:core-ktx:1.8.1")
 }
 
 flutter {

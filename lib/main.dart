@@ -6,6 +6,10 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'firebase_options.dart';
 import 'views/home_screen.dart';
 import 'views/entrance_screen.dart';
 import 'views/premium_paywall_screen.dart';
@@ -21,6 +25,24 @@ import 'l10n/app_localizations.dart';
 void main() async {
   // Ensure Flutter bindings are initialized
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Firebase
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } catch (e) {
+    debugPrint('[Developer Warning] Failed to initialize Firebase: $e');
+  }
+
+  // Initialize Google Sign-In
+  try {
+    await GoogleSignIn.instance.initialize(
+      serverClientId: '329755241965-g6qq9bces1gn0kbqpausom37cvppav2f.apps.googleusercontent.com',
+    );
+  } catch (e) {
+    debugPrint('[Developer Warning] Failed to initialize Google Sign-In: $e');
+  }
 
   // Load .env configuration
   try {
@@ -54,6 +76,30 @@ void main() async {
     prefs: prefs,
     settingsService: settingsService,
   ));
+}
+
+class AuthGate extends StatelessWidget {
+  const AuthGate({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
+        if (snapshot.hasData) {
+          return const HomeScreen();
+        }
+        return const EntranceScreen();
+      },
+    );
+  }
 }
 
 class MyApp extends StatelessWidget {
@@ -103,14 +149,13 @@ class MyApp extends StatelessWidget {
             theme: _buildLightTheme(),
             darkTheme: _buildDarkTheme(),
             themeMode: settings.themeMode,
+            home: const AuthGate(),
             routes: {
-              '/': (context) => const EntranceScreen(),
               '/home': (context) => const HomeScreen(),
               '/premium-paywall': (context) => const PremiumPaywallScreen(),
               '/ask-ai': (context) => const AskAIScreen(),
               '/profile': (context) => const ProfileScreen(),
             },
-            initialRoute: '/',
           );
         },
       ),
