@@ -133,7 +133,7 @@ class MedicineProgramScreen extends StatelessWidget {
                   ),
                 ),
               ],
-              if (viewModel.programs.where((p) => !p.isActive).isNotEmpty) ...[
+              if (viewModel.inactivePrograms.isNotEmpty) ...[
                 SliverPadding(
                   padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
                   sliver: SliverToBoxAdapter(
@@ -176,9 +176,7 @@ class MedicineProgramScreen extends StatelessWidget {
                   sliver: SliverList(
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {
-                        final program = viewModel.programs
-                            .where((p) => !p.isActive)
-                            .toList()[index];
+                        final program = viewModel.inactivePrograms[index];
                         return MedicineProgramCard(
                           program: program,
                           onTap: () => _showProgramDetails(context, program),
@@ -187,8 +185,7 @@ class MedicineProgramScreen extends StatelessWidget {
                           onDelete: () => _confirmDelete(context, program),
                         );
                       },
-                      childCount:
-                          viewModel.programs.where((p) => !p.isActive).length,
+                      childCount: viewModel.inactivePrograms.length,
                     ),
                   ),
                 ),

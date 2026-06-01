@@ -15,6 +15,8 @@ class UsageLimitService extends ChangeNotifier {
   UsageLimitService(this._prefs) {
     _loadFromPrefs();
     _initRevenueCatListener();
+    // Sync the status asynchronously on startup to verify against active entitlements
+    syncSubscriptionStatus();
   }
 
   void _initRevenueCatListener() {
@@ -25,6 +27,19 @@ class UsageLimitService extends ChangeNotifier {
       });
     } catch (e) {
       debugPrint('[Developer Warning] Failed to register RevenueCat listener: $e');
+    }
+  }
+
+  /// Synchronizes subscription status dynamically with RevenueCat server.
+  Future<void> syncSubscriptionStatus() async {
+    try {
+      if (await Purchases.isConfigured) {
+        final customerInfo = await Purchases.getCustomerInfo();
+        final isPremiumActive = customerInfo.entitlements.active.isNotEmpty;
+        await setPremium(isPremiumActive);
+      }
+    } catch (e) {
+      debugPrint('[Developer Warning] Failed to sync subscription status: $e');
     }
   }
 

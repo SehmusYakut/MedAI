@@ -20,6 +20,8 @@ import 'viewmodels/medicine_program_view_model.dart';
 import 'viewmodels/ocr_view_model.dart';
 import 'services/usage_limit_service.dart';
 import 'services/theme_and_locale_service.dart';
+import 'services/central_config.dart';
+import 'services/chat_storage_service.dart';
 import 'l10n/app_localizations.dart';
 
 void main() async {
@@ -54,17 +56,12 @@ void main() async {
   // Load SharedPreferences and Settings Service before runApp
   final prefs = await SharedPreferences.getInstance();
   final settingsService = ThemeAndLocaleService(prefs);
+  final chatStorageService = ChatStorageService(prefs);
 
-  // Initialize RevenueCat safely
-  try {
-    if (Platform.isAndroid) {
-      await Purchases.configure(PurchasesConfiguration("goog_public_android_api_key"));
-    } else if (Platform.isIOS) {
-      await Purchases.configure(PurchasesConfiguration("appl_public_ios_api_key"));
-    }
-  } catch (e) {
+  // Initialize RevenueCat safely without delaying the native layout render tree
+  CentralConfig.configurePurchases().catchError((e) {
     debugPrint('[Developer Warning] Failed to initialize RevenueCat: $e');
-  }
+  });
 
   // Set preferred orientations
   await SystemChrome.setPreferredOrientations([
@@ -122,9 +119,11 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final chatStorageService = ChatStorageService(prefs);
     return MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: settingsService),
+        Provider<ChatStorageService>.value(value: chatStorageService),
         ChangeNotifierProvider(create: (_) => HomeViewModel()),
         ChangeNotifierProvider(create: (_) => MedicineProgramViewModel()),
         ChangeNotifierProvider(create: (_) => OCRViewModel()),

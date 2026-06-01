@@ -10,6 +10,8 @@ class MedicineProgramViewModel extends ChangeNotifier {
   List<MedicineProgram> get programs => List.unmodifiable(_programs);
   List<MedicineProgram> get activePrograms =>
       _programs.where((p) => p.isActive).toList();
+  List<MedicineProgram> get inactivePrograms =>
+      _programs.where((p) => !p.isActive).toList();
   bool get isLoading => _isLoading;
 
   // Common medicine sources

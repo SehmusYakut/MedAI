@@ -289,8 +289,4 @@ class AIServiceManager {
     return _services!;
   }
 
-  Future<void> setAPIKey(String serviceName, String apiKey) async {
-    // Deprecated: API keys are now securely managed from central environment config.
-    // Kept as no-op for backward compatibility.
-  }
 }

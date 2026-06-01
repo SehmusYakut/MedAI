@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import '../services/usage_limit_service.dart';
+import '../services/central_config.dart';
 
 class PremiumPaywallScreen extends StatefulWidget {
   const PremiumPaywallScreen({super.key});
@@ -63,13 +64,7 @@ class _PremiumPaywallScreenState extends State<PremiumPaywallScreen> {
 
     try {
       // 1. Initialize SDK if not configured yet
-      if (!await Purchases.isConfigured) {
-        if (Platform.isAndroid) {
-          await Purchases.configure(PurchasesConfiguration("goog_public_android_api_key"));
-        } else if (Platform.isIOS) {
-          await Purchases.configure(PurchasesConfiguration("appl_public_ios_api_key"));
-        }
-      }
+      await CentralConfig.configurePurchases();
 
       // 2. Fetch offerings
       Offerings offerings = await Purchases.getOfferings();

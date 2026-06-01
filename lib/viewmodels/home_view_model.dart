@@ -106,10 +106,7 @@ class HomeViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> setAPIKey(String serviceName, String apiKey) async {
-    await _aiManager.setAPIKey(serviceName, apiKey);
-    notifyListeners();
-  }
+
 
   void clearError() {
     _errorMessage = null;
