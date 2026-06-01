@@ -24,7 +24,7 @@ class HomeScreen extends StatelessWidget {
         actions: const [
           LanguageSelector(),
           _ThemeToggleButton(),
-          _ApiKeyButton(),
+          _PremiumButton(),
         ],
       ),
       body: ListView(
@@ -191,17 +191,17 @@ class _ThemeToggleButton extends StatelessWidget {
   }
 }
 
-// ── API Key Button ────────────────────────────────────────────────────────────
+// ── Premium Button ────────────────────────────────────────────────────────────
 
-class _ApiKeyButton extends StatelessWidget {
-  const _ApiKeyButton();
+class _PremiumButton extends StatelessWidget {
+  const _PremiumButton();
 
   @override
   Widget build(BuildContext context) {
     return IconButton(
-      icon: const Icon(Icons.key_outlined),
-      onPressed: () => Navigator.pushNamed(context, '/api-key'),
-      tooltip: AppLocalizations.of(context).apiKeyManagement,
+      icon: const Icon(Icons.star_rounded, color: Colors.amber),
+      onPressed: () => Navigator.pushNamed(context, '/premium-paywall'),
+      tooltip: 'MedAI Premium',
     );
   }
 }

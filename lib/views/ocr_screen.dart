@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import '../viewmodels/ocr_view_model.dart';
+import '../services/usage_limit_service.dart';
 import '../l10n/app_localizations.dart';
 
 class OCRScreen extends StatelessWidget {
@@ -234,7 +235,15 @@ class _CompleteState extends StatelessWidget {
             const SizedBox(height: 16),
             if (!vm.hasAiResponses)
               FilledButton.icon(
-                onPressed: context.read<OCRViewModel>().analyzeWithAI,
+                onPressed: () async {
+                  final limitService = Provider.of<UsageLimitService>(context, listen: false);
+                  await limitService.checkAndResetDailyLimit();
+                  if (limitService.getRemainingRights() <= 0) {
+                    Navigator.pushNamed(context, '/premium-paywall');
+                  } else {
+                    context.read<OCRViewModel>().analyzeWithAI(limitService);
+                  }
+                },
                 icon: const Icon(Icons.psychology),
                 label: Text(l10n.askAI),
               ),
@@ -265,7 +274,15 @@ class _ErrorState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final isPremiumRequired = vm.sessionError == 'premium_required';
     final isNoAiServices = vm.sessionError == 'no_ai_services';
+
+    String errorMsg = vm.sessionError ?? '';
+    if (isPremiumRequired) {
+      errorMsg = 'You have reached your daily free limit. Upgrade to Premium for uninterrupted clinical insights!';
+    } else if (isNoAiServices) {
+      errorMsg = l10n.noAiConfigured;
+    }
 
     return Center(
       child: Padding(
@@ -273,11 +290,16 @@ class _ErrorState extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(isNoAiServices ? Icons.key_off_outlined : Icons.error_outline,
-                size: 56, color: cs.error),
+            Icon(
+              isPremiumRequired
+                  ? Icons.star_rounded
+                  : (isNoAiServices ? Icons.info_outline : Icons.error_outline),
+              size: 56,
+              color: isPremiumRequired ? Colors.amber : cs.error,
+            ),
             const SizedBox(height: 16),
             Text(
-              isNoAiServices ? l10n.noAiConfigured : (vm.sessionError ?? ''),
+              errorMsg,
               style: Theme.of(context)
                   .textTheme
                   .bodyMedium
@@ -292,11 +314,11 @@ class _ErrorState extends StatelessWidget {
                   onPressed: context.read<OCRViewModel>().clearSessionError,
                   child: Text(l10n.retry),
                 ),
-                if (isNoAiServices) ...[
+                if (isPremiumRequired) ...[
                   const SizedBox(width: 12),
                   FilledButton(
-                    onPressed: () => Navigator.pushNamed(context, '/api-key'),
-                    child: Text(l10n.configureApiKeys),
+                    onPressed: () => Navigator.pushNamed(context, '/premium-paywall'),
+                    child: const Text('Upgrade Now'),
                   ),
                 ],
               ],

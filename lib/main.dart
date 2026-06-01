@@ -2,13 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'views/home_screen.dart';
 import 'views/entrance_screen.dart';
-import 'views/api_key_screen.dart';
+import 'views/premium_paywall_screen.dart';
 import 'views/ask_ai_screen.dart';
 import 'viewmodels/home_view_model.dart';
 import 'viewmodels/medicine_program_view_model.dart';
 import 'viewmodels/ocr_view_model.dart';
+import 'services/usage_limit_service.dart';
 import 'l10n/app_localizations.dart';
 
 void main() async {
@@ -25,7 +27,8 @@ void main() async {
 }
 
 class MyApp extends StatefulWidget {
-  const MyApp({super.key});
+  final SharedPreferences? prefs;
+  const MyApp({super.key, this.prefs});
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -44,6 +47,21 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   Locale _locale = const Locale('en');
   bool _isDarkTheme = false;
+  SharedPreferences? _prefs;
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _initPrefs();
+  }
+
+  Future<void> _initPrefs() async {
+    _prefs = widget.prefs ?? await SharedPreferences.getInstance();
+    setState(() {
+      _loading = false;
+    });
+  }
 
   void setLocale(Locale locale) {
     setState(() {
@@ -59,11 +77,24 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
+    if (_loading) {
+      return MaterialApp(
+        debugShowCheckedModeBanner: false,
+        themeMode: _isDarkTheme ? ThemeMode.dark : ThemeMode.light,
+        home: const Scaffold(
+          body: Center(
+            child: CircularProgressIndicator(),
+          ),
+        ),
+      );
+    }
+
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => HomeViewModel()),
         ChangeNotifierProvider(create: (_) => MedicineProgramViewModel()),
         ChangeNotifierProvider(create: (_) => OCRViewModel()),
+        ChangeNotifierProvider(create: (_) => UsageLimitService(_prefs!)),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -85,7 +116,7 @@ class _MyAppState extends State<MyApp> {
         routes: {
           '/': (context) => const EntranceScreen(),
           '/home': (context) => const HomeScreen(),
-          '/api-key': (context) => const ApiKeyScreen(),
+          '/premium-paywall': (context) => const PremiumPaywallScreen(),
           '/ask-ai': (context) => const AskAIScreen(),
         },
         initialRoute: '/',
@@ -182,7 +213,7 @@ class _MyAppState extends State<MyApp> {
     const electricTeal = Color(0xFF00D9FF); // Bright Electric Teal accent
     const darkSurfaceColor = Color(0xFF0F1F2E); // Slightly lighter than navy
 
-    final darkScheme = ColorScheme(
+    const darkScheme = ColorScheme(
       brightness: Brightness.dark,
       primary: electricTeal,
       onPrimary: const Color(0xFF000000),
@@ -203,30 +234,30 @@ class _MyAppState extends State<MyApp> {
       colorScheme: darkScheme,
       useMaterial3: true,
       scaffoldBackgroundColor: darkNavy,
-      cardTheme: CardThemeData(
+      cardTheme: const CardThemeData(
         clipBehavior: Clip.antiAlias,
         margin: EdgeInsets.zero,
         elevation: 2,
         color: darkSurfaceColor,
-        shape: const RoundedRectangleBorder(
+        shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(16)),
         ),
       ),
-      appBarTheme: AppBarTheme(
+      appBarTheme: const AppBarTheme(
         centerTitle: true,
         elevation: 0,
         scrolledUnderElevation: 2,
         backgroundColor: darkNavy,
         foregroundColor: electricTeal,
       ),
-      floatingActionButtonTheme: FloatingActionButtonThemeData(
+      floatingActionButtonTheme: const FloatingActionButtonThemeData(
         elevation: 4,
         backgroundColor: electricTeal,
         foregroundColor: darkNavy,
-        shape: const RoundedRectangleBorder(
+        shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(16)),
         ),
-        smallSizeConstraints: const BoxConstraints.tightFor(
+        smallSizeConstraints: BoxConstraints.tightFor(
           width: 48,
           height: 48,
         ),
@@ -242,8 +273,8 @@ class _MyAppState extends State<MyApp> {
           borderRadius: const BorderRadius.all(Radius.circular(12)),
           borderSide: BorderSide(color: darkScheme.outline, width: 1.5),
         ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: const BorderRadius.all(Radius.circular(12)),
+        focusedBorder: const OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(12)),
           borderSide: BorderSide(color: electricTeal, width: 2.5),
         ),
         contentPadding: const EdgeInsets.symmetric(
@@ -251,37 +282,37 @@ class _MyAppState extends State<MyApp> {
           vertical: 16,
         ),
       ),
-      filledButtonTheme: FilledButtonThemeData(
+      filledButtonTheme: const FilledButtonThemeData(
         style: ButtonStyle(
-          backgroundColor: const WidgetStatePropertyAll(electricTeal),
-          foregroundColor: const WidgetStatePropertyAll(Color(0xFF000000)),
-          padding: const WidgetStatePropertyAll(
+          backgroundColor: WidgetStatePropertyAll(electricTeal),
+          foregroundColor: WidgetStatePropertyAll(Color(0xFF000000)),
+          padding: WidgetStatePropertyAll(
             EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           ),
-          shape: const WidgetStatePropertyAll(
+          shape: WidgetStatePropertyAll(
             RoundedRectangleBorder(
               borderRadius: BorderRadius.all(Radius.circular(12)),
             ),
           ),
         ),
       ),
-      textButtonTheme: TextButtonThemeData(
+      textButtonTheme: const TextButtonThemeData(
         style: ButtonStyle(
-          foregroundColor: const WidgetStatePropertyAll(electricTeal),
-          padding: const WidgetStatePropertyAll(
+          foregroundColor: WidgetStatePropertyAll(electricTeal),
+          padding: WidgetStatePropertyAll(
             EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           ),
-          shape: const WidgetStatePropertyAll(
+          shape: WidgetStatePropertyAll(
             RoundedRectangleBorder(
               borderRadius: BorderRadius.all(Radius.circular(12)),
             ),
           ),
         ),
       ),
-      dialogTheme: DialogThemeData(
+      dialogTheme: const DialogThemeData(
         backgroundColor: darkSurfaceColor,
         elevation: 8,
-        shape: const RoundedRectangleBorder(
+        shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(20)),
         ),
       ),

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'api_key_service.dart';
+import 'central_config.dart';
 
 abstract class AIService {
   Future<String> generateResponse(String prompt);
@@ -259,6 +260,29 @@ class OpenRouterService implements AIService {
   }
 }
 
+class MockAIService implements AIService {
+  @override
+  String get name => 'MockAI (Demo)';
+
+  @override
+  Future<String> generateResponse(String prompt) async {
+    await Future.delayed(const Duration(seconds: 1));
+    return '''
+## Answer
+This is a mock clinical insight response to demonstrate the app logic without an active API key.
+
+## Explanation
+To run this with real AI models, compile the app with:
+`flutter run --dart-define=GEMINI_API_KEY=your_key`
+
+## Key Points
+- Free queries limit is active: 5 queries per day.
+- Daily Access counter will decrement.
+- Once it hits 0, the Premium Paywall will be triggered!
+''';
+  }
+}
+
 class AIServiceManager {
   static final AIServiceManager _instance = AIServiceManager._internal();
   factory AIServiceManager() => _instance;
@@ -269,68 +293,46 @@ class AIServiceManager {
   Future<List<AIService>> getServices() async {
     if (_services != null) return _services!;
 
-    final apiKeyService = await ApiKeyService.getInstance();
-    final chatGPTKey = apiKeyService.getChatGPTApiKey();
-    final mistralKey = apiKeyService.getMistralApiKey();
-    final geminiKey = apiKeyService.getGeminiApiKey();
-    final claudeKey = apiKeyService.getClaudeApiKey();
-    final groqKey = apiKeyService.getGroqApiKey();
-    final huggingFaceKey = apiKeyService.getHuggingFaceApiKey();
-    final openRouterKey = apiKeyService.getOpenRouterApiKey();
-
     _services = [];
 
-    if (chatGPTKey != null) {
-      _services!.add(ChatGPTService(chatGPTKey));
+    if (CentralConfig.chatGPTKey.isNotEmpty) {
+      _services!.add(ChatGPTService(CentralConfig.chatGPTKey));
     }
 
-    if (mistralKey != null) {
-      _services!.add(MistralService(mistralKey));
+    if (CentralConfig.mistralKey.isNotEmpty) {
+      _services!.add(MistralService(CentralConfig.mistralKey));
     }
 
-    if (geminiKey != null) {
-      _services!.add(GeminiService(geminiKey));
+    if (CentralConfig.geminiKey.isNotEmpty) {
+      _services!.add(GeminiService(CentralConfig.geminiKey));
     }
 
-    if (claudeKey != null) {
-      _services!.add(ClaudeService(claudeKey));
+    if (CentralConfig.claudeKey.isNotEmpty) {
+      _services!.add(ClaudeService(CentralConfig.claudeKey));
     }
 
-    if (groqKey != null) {
-      _services!.add(GroqService(groqKey));
+    if (CentralConfig.groqKey.isNotEmpty) {
+      _services!.add(GroqService(CentralConfig.groqKey));
     }
 
-    if (huggingFaceKey != null) {
-      _services!.add(HuggingFaceService(huggingFaceKey));
+    if (CentralConfig.huggingFaceKey.isNotEmpty) {
+      _services!.add(HuggingFaceService(CentralConfig.huggingFaceKey));
     }
 
-    if (openRouterKey != null) {
-      _services!.add(OpenRouterService(openRouterKey));
+    if (CentralConfig.openRouterKey.isNotEmpty) {
+      _services!.add(OpenRouterService(CentralConfig.openRouterKey));
+    }
+
+    // Fallback: If no keys are provided, we add a mock service so the application is immediately testable.
+    if (_services!.isEmpty) {
+      _services!.add(MockAIService());
     }
 
     return _services!;
   }
 
   Future<void> setAPIKey(String serviceName, String apiKey) async {
-    final apiKeyService = await ApiKeyService.getInstance();
-
-    switch (serviceName.toLowerCase()) {
-      case 'chatgpt':
-        await apiKeyService.setChatGPTApiKey(apiKey);
-      case 'mistral':
-        await apiKeyService.setMistralApiKey(apiKey);
-      case 'gemini':
-        await apiKeyService.setGeminiApiKey(apiKey);
-      case 'claude':
-        await apiKeyService.setClaudeApiKey(apiKey);
-      case 'groq':
-        await apiKeyService.setGroqApiKey(apiKey);
-      case 'huggingface':
-        await apiKeyService.setHuggingFaceApiKey(apiKey);
-      case 'openrouter':
-        await apiKeyService.setOpenRouterApiKey(apiKey);
-    }
-
-    _services = null; // Reset services to force reload
+    // Deprecated: API keys are now securely managed from central environment config.
+    // Kept as no-op for backward compatibility.
   }
 }

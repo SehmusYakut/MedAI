@@ -42,13 +42,13 @@ dependencies:
   http: ^1.2.1
   provider: ^6.0.5
   path_provider: ^2.1.1
-  shared_preferences: ^2.2.2
+  shared_preferences: ^2.5.5
   flutter_markdown: ^0.7.3
   uuid: ^4.2.1
   path: ^1.8.3
   test: ^1.24.9
   permission_handler: ^12.0.1
-  device_info_plus: ^12.1.0
+  device_info_plus: ^13.1.0
   google_generative_ai: ^0.4.0
   url_launcher: ^6.2.0
 
@@ -65,13 +65,13 @@ dev_dependencies:
   flutter_launcher_icons: ^0.13.1
 
 flutter_launcher_icons:
-  android: true
+  android: "launcher_icon"
   ios: true
-  image_path: "lib/assests/logo.jpeg"
+  image_path: "assets/images/medai_logo_source.png"
   min_sdk_android: 21
   remove_alpha_ios: true
-  adaptive_icon_background: "#FFFFFF"
-  adaptive_icon_foreground: "lib/assests/logo.jpeg"
+  adaptive_icon_background: "#121214"
+  adaptive_icon_foreground: "assets/images/medai_logo_foreground.png"
   adaptive_icon_foreground_inset: 0
 
 # For information on the generic Dart part of this file, see the

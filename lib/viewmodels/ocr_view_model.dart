@@ -7,6 +7,7 @@ import 'package:uuid/uuid.dart';
 import '../models/question.dart';
 import '../services/ai_service.dart';
 import '../services/ocr_service.dart';
+import '../services/usage_limit_service.dart';
 
 enum OcrSessionPhase { idle, picking, recognizing, askingAi, complete, error }
 
@@ -86,8 +87,17 @@ class OCRViewModel extends ChangeNotifier {
   }
 
   /// Sends the recognized text to all configured AI services.
-  Future<void> analyzeWithAI() async {
+  Future<void> analyzeWithAI(UsageLimitService limitService) async {
     if (_sessionText.isEmpty) return;
+
+    await limitService.checkAndResetDailyLimit();
+    if (limitService.getRemainingRights() <= 0) {
+      _sessionError = 'premium_required';
+      _sessionPhase = OcrSessionPhase.error;
+      notifyListeners();
+      return;
+    }
+
     _sessionPhase = OcrSessionPhase.askingAi;
     _sessionAiResponses.clear();
     _sessionError = null;
@@ -103,8 +113,9 @@ class OCRViewModel extends ChangeNotifier {
       }
       for (final service in services) {
         try {
-          _sessionAiResponses[service.name] =
-              await service.generateResponse(_buildMedicalPrompt());
+          final response = await service.generateResponse(_buildMedicalPrompt());
+          _sessionAiResponses[service.name] = response;
+          await limitService.decrementRight();
         } catch (e) {
           _sessionAiResponses[service.name] = '**Error:** ${e.toString()}';
         }
