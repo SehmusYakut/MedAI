@@ -5,7 +5,6 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/theme_and_locale_service.dart';
 import '../l10n/app_localizations.dart';
-import 'ocr_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -69,12 +68,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _handleSignOut(BuildContext context) async {
     try {
-      // Sign out from both Firebase and Google Sign-In
       await FirebaseAuth.instance.signOut();
       await GoogleSignIn.instance.signOut();
       
       if (context.mounted) {
-        // Pop back to the initial route. AuthGate will automatically switch back to EntranceScreen.
         Navigator.of(context).popUntil((route) => route.isFirst);
       }
     } catch (e) {
@@ -94,7 +91,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          isTurkish ? 'Profil & Ayarlar' : 'Profile & Settings',
+          l10n.profileSettingsTitle,
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
@@ -103,7 +100,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         children: [
           // User profile card
-          if (user != null) _buildUserProfileCard(user, cs, isDark, isTurkish),
+          if (user != null) _buildUserProfileCard(user, cs, isDark, isTurkish, l10n),
           const SizedBox(height: 20),
 
           // Medicine Programs Academic Track Checklist
@@ -126,7 +123,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               onPressed: () => _handleSignOut(context),
               icon: const Icon(Icons.logout_rounded),
               label: Text(
-                isTurkish ? 'Hesaptan Çıkış Yap' : 'Sign Out of Account',
+                l10n.signOutAccount,
                 style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
               ),
               style: OutlinedButton.styleFrom(
@@ -144,7 +141,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildUserProfileCard(User user, ColorScheme cs, bool isDark, bool isTurkish) {
+  Widget _buildUserProfileCard(User user, ColorScheme cs, bool isDark, bool isTurkish, AppLocalizations l10n) {
     final String emailDomain = user.email != null && user.email!.contains('@')
         ? user.email!.split('@')[1]
         : '';
@@ -192,7 +189,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    user.displayName ?? 'Medical Professional',
+                    user.displayName ?? l10n.medicalProfessional,
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -336,7 +333,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              isTurkish ? 'Uygulama Tercihleri' : 'App Preferences',
+              l10n.appPreferences,
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
@@ -437,10 +434,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(height: 12),
             InkWell(
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const OCRScreen()),
-                );
+                Navigator.pushNamed(context, '/ocr');
               },
               borderRadius: BorderRadius.circular(16),
               child: Container(
@@ -478,6 +472,61 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           const SizedBox(height: 4),
                           Text(
                             l10n.ocrScannerDesc,
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: isDark ? Colors.white60 : Colors.black54,
+                              height: 1.4,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Colors.grey),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            InkWell(
+              onTap: () {
+                Navigator.pushNamed(context, '/question-bank');
+              },
+              borderRadius: BorderRadius.circular(16),
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: cs.surfaceContainerHighest.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: isDark ? Colors.white10 : Colors.grey.shade100,
+                  ),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.purple.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(Icons.collections_bookmark_outlined, color: Colors.purple, size: 22),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l10n.questionBank,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            l10n.questionBankDesc,
                             style: TextStyle(
                               fontSize: 11,
                               color: isDark ? Colors.white60 : Colors.black54,

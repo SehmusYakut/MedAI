@@ -1,11 +1,9 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -15,7 +13,9 @@ import 'views/entrance_screen.dart';
 import 'views/premium_paywall_screen.dart';
 import 'views/ask_ai_screen.dart';
 import 'views/profile_screen.dart';
-import 'viewmodels/home_view_model.dart';
+import 'views/question_bank_screen.dart';
+import 'views/ocr_screen.dart';
+import 'views/medicine_program_screen.dart';
 import 'viewmodels/medicine_program_view_model.dart';
 import 'viewmodels/ocr_view_model.dart';
 import 'services/usage_limit_service.dart';
@@ -56,7 +56,6 @@ void main() async {
   // Load SharedPreferences and Settings Service before runApp
   final prefs = await SharedPreferences.getInstance();
   final settingsService = ThemeAndLocaleService(prefs);
-  final chatStorageService = ChatStorageService(prefs);
 
   // Initialize RevenueCat safely without delaying the native layout render tree
   CentralConfig.configurePurchases().catchError((e) {
@@ -124,9 +123,8 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider.value(value: settingsService),
         Provider<ChatStorageService>.value(value: chatStorageService),
-        ChangeNotifierProvider(create: (_) => HomeViewModel()),
-        ChangeNotifierProvider(create: (_) => MedicineProgramViewModel()),
-        ChangeNotifierProvider(create: (_) => OCRViewModel()),
+        ChangeNotifierProvider(create: (_) => MedicineProgramViewModel(prefs: prefs)),
+        ChangeNotifierProvider(create: (_) => OCRViewModel(prefs: prefs)),
         ChangeNotifierProvider(create: (_) => UsageLimitService(prefs)),
       ],
       child: Consumer<ThemeAndLocaleService>(
@@ -154,6 +152,9 @@ class MyApp extends StatelessWidget {
               '/premium-paywall': (context) => const PremiumPaywallScreen(),
               '/ask-ai': (context) => const AskAIScreen(),
               '/profile': (context) => const ProfileScreen(),
+              '/question-bank': (context) => const QuestionBankScreen(),
+              '/ocr': (context) => const OCRScreen(),
+              '/medicine-programs': (context) => const MedicineProgramScreen(),
             },
           );
         },
@@ -280,6 +281,7 @@ class MyApp extends StatelessWidget {
           borderRadius: BorderRadius.all(Radius.circular(16)),
         ),
       ),
+
       appBarTheme: const AppBarTheme(
         centerTitle: true,
         elevation: 0,

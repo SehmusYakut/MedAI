@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:ui';
 import '../services/chat_storage_service.dart';
 import '../services/usage_limit_service.dart';
 import '../models/chat_session.dart';
@@ -67,8 +66,89 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     final cs = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final user = FirebaseAuth.instance.currentUser;
+    final photoUrl = user?.photoURL;
 
     return Scaffold(
+      appBar: AppBar(
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              l10n.appTitle,
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: cs.primary,
+                letterSpacing: 0.5,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: limitService.isPremium
+                    ? Colors.amber.withValues(alpha: 0.15)
+                    : cs.surfaceContainerHighest.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: limitService.isPremium ? Colors.amber : cs.outlineVariant,
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    limitService.isPremium ? Icons.stars : Icons.healing,
+                    size: 10,
+                    color: limitService.isPremium ? Colors.amber : cs.primary,
+                  ),
+                  const SizedBox(width: 3),
+                  Text(
+                    limitService.isPremium ? 'PRO' : 'FREE',
+                    style: TextStyle(
+                      fontSize: 8,
+                      fontWeight: FontWeight.bold,
+                      color: limitService.isPremium ? Colors.amber : cs.primary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        centerTitle: false,
+        actions: [
+          GestureDetector(
+            onTap: () {
+              Navigator.pushNamed(context, '/profile').then((_) {
+                _loadAcademicTrack();
+                _loadSessions();
+              });
+            },
+            child: Padding(
+              padding: const EdgeInsets.only(right: 16.0),
+              child: CircleAvatar(
+                radius: 18,
+                backgroundColor: cs.primary.withValues(alpha: 0.1),
+                child: ClipOval(
+                  child: photoUrl != null && photoUrl.isNotEmpty
+                      ? Image.network(
+                          photoUrl,
+                          width: 36,
+                          height: 36,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Icon(Icons.account_circle, color: cs.primary, size: 24);
+                          },
+                        )
+                      : Icon(Icons.account_circle, color: cs.primary, size: 24),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
       body: Stack(
         children: [
           // Background Gradient matching dark-mode glassmorphism
@@ -93,59 +173,13 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             child: CustomScrollView(
               physics: const BouncingScrollPhysics(),
               slivers: [
-                // Smart Hub Header / Greeting Panel
+                // Smart Hub Greeting Panel
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              l10n.appTitle,
-                              style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: cs.primary,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: limitService.isPremium
-                                    ? Colors.amber.withValues(alpha: 0.15)
-                                    : cs.surfaceContainerHighest.withValues(alpha: 0.3),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: limitService.isPremium ? Colors.amber : cs.outlineVariant,
-                                  width: 1,
-                                ),
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    limitService.isPremium ? Icons.stars : Icons.healing,
-                                    size: 14,
-                                    color: limitService.isPremium ? Colors.amber : cs.primary,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    limitService.isPremium ? 'PRO' : 'FREE',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
-                                      color: limitService.isPremium ? Colors.amber : cs.primary,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 24),
                         // Dark-mode greeting panel
                         Container(
                           padding: const EdgeInsets.all(20),
@@ -178,7 +212,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Welcome back, Counselor.',
+                                l10n.welcomeCounselor,
                                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                                       fontWeight: FontWeight.bold,
                                       color: isDark ? Colors.white : Colors.cyan.shade900,
@@ -186,7 +220,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                'What is your clinical focus today?',
+                                l10n.clinicalFocusToday,
                                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                       color: isDark ? Colors.white70 : Colors.black87,
                                     ),
@@ -217,7 +251,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                   ),
                 ),
 
-                // Core Action Matrix (Launch New Query & Settings)
+                // Core Action Matrix (Launch New Query, OCR, Medicine, Question Bank)
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -282,22 +316,22 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                                   ),
                                 ),
                                 const SizedBox(width: 20),
-                                const Expanded(
+                                Expanded(
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        'Launch New Clinical Query',
-                                        style: TextStyle(
+                                        l10n.launchNewQuery,
+                                        style: const TextStyle(
                                           fontSize: 18,
                                           fontWeight: FontWeight.bold,
                                           color: Colors.white,
                                         ),
                                       ),
-                                      SizedBox(height: 4),
+                                      const SizedBox(height: 4),
                                       Text(
-                                        'Start a brand-new diagnostic session with AI clinical reasoning.',
-                                        style: TextStyle(
+                                        l10n.launchNewQueryDesc,
+                                        style: const TextStyle(
                                           fontSize: 12,
                                           color: Colors.white70,
                                         ),
@@ -315,59 +349,174 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                           ),
                         ),
                         const SizedBox(height: 16),
-                        // Quick Settings Card
+                        // Split Medicine Program & OCR Scanner Row
+                        Row(
+                          children: [
+                            // Medicine Program Card
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: () {
+                                  Navigator.pushNamed(context, '/medicine-programs').then((_) => _loadSessions());
+                                },
+                                child: Container(
+                                  height: 110,
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                      colors: isDark
+                                          ? [const Color(0xFF1E3A8A), const Color(0xFF3B82F6)]
+                                          : [Colors.blue.shade700, Colors.indigo.shade600],
+                                    ),
+                                    borderRadius: BorderRadius.circular(20),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.blue.withValues(alpha: 0.2),
+                                        blurRadius: 10,
+                                        offset: const Offset(0, 4),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      const Icon(Icons.medication_rounded, color: Colors.white, size: 24),
+                                      Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            l10n.medicinePrograms,
+                                            style: const TextStyle(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          const Text(
+                                            'Schedules & Reminders',
+                                            style: TextStyle(fontSize: 9, color: Colors.white70),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            // OCR Scanner Card
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: () {
+                                  Navigator.pushNamed(context, '/ocr').then((_) => _loadSessions());
+                                },
+                                child: Container(
+                                  height: 110,
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                      colors: isDark
+                                          ? [const Color(0xFFD97706), const Color(0xFFEA580C)]
+                                          : [Colors.amber.shade700, Colors.orange.shade700],
+                                    ),
+                                    borderRadius: BorderRadius.circular(20),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.orange.withValues(alpha: 0.2),
+                                        blurRadius: 10,
+                                        offset: const Offset(0, 4),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      const Icon(Icons.document_scanner_rounded, color: Colors.white, size: 24),
+                                      Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            l10n.ocrScan,
+                                            style: const TextStyle(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          const Text(
+                                            'Prescriptions & Books',
+                                            style: TextStyle(fontSize: 9, color: Colors.white70),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        // Question Bank Card
                         GestureDetector(
                           onTap: () {
-                            Navigator.pushNamed(context, '/profile').then((_) {
-                              _loadAcademicTrack();
-                              _loadSessions();
-                            });
+                            Navigator.pushNamed(context, '/question-bank').then((_) => _loadSessions());
                           },
                           child: Container(
                             width: double.infinity,
                             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                             decoration: BoxDecoration(
-                              color: isDark ? const Color(0xFF0F1F2E) : Colors.white,
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: isDark ? Colors.white10 : Colors.grey.shade200,
-                                width: 1.5,
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: isDark
+                                    ? [const Color(0xFF4C1D95), const Color(0xFF7C3AED)] // Purple
+                                    : [Colors.purple.shade700, Colors.deepPurple.shade600],
                               ),
+                              borderRadius: BorderRadius.circular(20),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.purple.withValues(alpha: 0.2),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
                             ),
                             child: Row(
                               children: [
-                                Container(
-                                  padding: const EdgeInsets.all(10),
-                                  decoration: BoxDecoration(
-                                    color: cs.primary.withValues(alpha: 0.1),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Icon(Icons.account_circle_outlined, color: cs.primary, size: 22),
-                                ),
-                                const SizedBox(width: 14),
-                                const Expanded(
+                                const Icon(Icons.collections_bookmark_rounded, color: Colors.white, size: 24),
+                                const SizedBox(width: 16),
+                                Expanded(
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        'Student Profile & Preferences',
-                                        style: TextStyle(
-                                          fontSize: 14,
+                                        l10n.questionBank,
+                                        style: const TextStyle(
+                                          fontSize: 15,
                                           fontWeight: FontWeight.bold,
+                                          color: Colors.white,
                                         ),
                                       ),
-                                      SizedBox(height: 2),
+                                      const SizedBox(height: 2),
                                       Text(
-                                        'Academic level, localization, and theme options',
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          color: Colors.grey,
+                                        l10n.questionBankDesc,
+                                        style: const TextStyle(
+                                          fontSize: 10,
+                                          color: Colors.white70,
                                         ),
                                       ),
                                     ],
                                   ),
                                 ),
-                                Icon(Icons.arrow_forward_ios_rounded, color: cs.primary.withValues(alpha: 0.6), size: 14),
+                                const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white, size: 14),
                               ],
                             ),
                           ),
@@ -382,7 +531,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                   child: Padding(
                     padding: const EdgeInsets.only(left: 20, right: 20, top: 32, bottom: 12),
                     child: Text(
-                      'Recent Case Investigations',
+                      l10n.recentCaseInvestigations,
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -421,13 +570,13 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                           children: [
                             Icon(Icons.folder_open_rounded, size: 40, color: cs.primary.withValues(alpha: 0.4)),
                             const SizedBox(height: 12),
-                            const Text(
-                              'No recent case investigations.',
-                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                            Text(
+                              l10n.noRecentCases,
+                              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'Your active clinical study sessions will appear here.',
+                              l10n.activeSessionsDesc,
                               style: TextStyle(fontSize: 11, color: cs.onSurface.withValues(alpha: 0.5)),
                               textAlign: TextAlign.center,
                             ),
@@ -474,7 +623,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                                 ),
                                 subtitle: Text(
-                                  '$dateStr  •  $messagesCount messages',
+                                  '$dateStr  •  $messagesCount ${l10n.messagesCountLabel}',
                                   style: const TextStyle(fontSize: 11, color: Colors.grey),
                                 ),
                                 trailing: Row(
@@ -516,15 +665,16 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   }
 
   void _showDeleteConfirm(String sessionId) {
+    final l10n = AppLocalizations.of(context);
     showDialog(
       context: context,
       builder: (dialogCtx) => AlertDialog(
-        title: const Text('Delete Case?'),
-        content: const Text('Are you sure you want to permanently delete this case investigation from your device?'),
+        title: Text(l10n.deleteCaseTitle),
+        content: Text(l10n.deleteCaseConfirm),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogCtx),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           FilledButton(
             style: FilledButton.styleFrom(
@@ -533,9 +683,9 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             ),
             onPressed: () async {
               await _deleteSession(sessionId);
-              if (mounted) Navigator.pop(dialogCtx);
+              if (dialogCtx.mounted) Navigator.pop(dialogCtx);
             },
-            child: const Text('Delete'),
+            child: Text(l10n.delete),
           ),
         ],
       ),

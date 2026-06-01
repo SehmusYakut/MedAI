@@ -1,8 +1,10 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import '../models/question.dart';
 import '../services/ai_service.dart';
@@ -16,6 +18,7 @@ class OCRViewModel extends ChangeNotifier {
   final _uuid = const Uuid();
   late final OCRService _ocrService;
   late final AIServiceManager _aiManager;
+  final SharedPreferences? _prefs;
   final List<Question> _questions = [];
 
   // Active OCR session state
@@ -25,9 +28,36 @@ class OCRViewModel extends ChangeNotifier {
   final Map<String, String> _sessionAiResponses = {};
   String? _sessionError;
 
-  OCRViewModel({OCRService? ocrService, AIServiceManager? aiManager}) {
+  OCRViewModel({SharedPreferences? prefs, OCRService? ocrService, AIServiceManager? aiManager}) : _prefs = prefs {
     _ocrService = ocrService ?? OCRService();
     _aiManager = aiManager ?? AIServiceManager();
+    _loadQuestionsFromStorage();
+  }
+
+  static const String _questionsKey = 'medai_ocr_questions';
+
+  void _loadQuestionsFromStorage() {
+    if (_prefs == null) return;
+    final String? questionsJson = _prefs!.getString(_questionsKey);
+    if (questionsJson != null) {
+      try {
+        final List<dynamic> decoded = jsonDecode(questionsJson);
+        _questions.clear();
+        _questions.addAll(decoded.map((item) => Question.fromJson(item)));
+      } catch (e) {
+        debugPrint('[OCRViewModel] Error decoding questions: $e');
+      }
+    }
+  }
+
+  Future<void> _saveQuestionsToStorage() async {
+    if (_prefs == null) return;
+    try {
+      final String questionsJson = jsonEncode(_questions.map((q) => q.toJson()).toList());
+      await _prefs!.setString(_questionsKey, questionsJson);
+    } catch (e) {
+      debugPrint('[OCRViewModel] Error saving questions: $e');
+    }
   }
 
   // Existing question list getters
@@ -122,6 +152,17 @@ class OCRViewModel extends ChangeNotifier {
         notifyListeners();
       }
       _sessionPhase = OcrSessionPhase.complete;
+
+      // Update the explanation of the question matching this text in the question bank
+      final index = _questions.indexWhere((q) => q.text == _sessionText);
+      if (index != -1) {
+        final q = _questions[index];
+        final combinedText = _sessionAiResponses.entries
+            .map((e) => '### ${e.key} Analysis\n\n${e.value}')
+            .join('\n\n');
+        _questions[index] = q.copyWith(explanation: combinedText);
+        await _saveQuestionsToStorage();
+      }
     } catch (e) {
       _sessionError = e.toString();
       _sessionPhase = OcrSessionPhase.error;
@@ -164,6 +205,7 @@ class OCRViewModel extends ChangeNotifier {
       imagePath: savedPath,
       createdAt: DateTime.now(),
     ));
+    await _saveQuestionsToStorage();
     return processed;
   }
 
@@ -190,6 +232,22 @@ Explain the underlying concept and reasoning.
 
   void addQuestion(Question question) {
     _questions.add(question);
+    _saveQuestionsToStorage();
+    notifyListeners();
+  }
+
+  void updateQuestion(Question question) {
+    final index = _questions.indexWhere((q) => q.id == question.id);
+    if (index != -1) {
+      _questions[index] = question;
+      _saveQuestionsToStorage();
+      notifyListeners();
+    }
+  }
+
+  void deleteQuestion(String id) {
+    _questions.removeWhere((q) => q.id == id);
+    _saveQuestionsToStorage();
     notifyListeners();
   }
 
@@ -236,6 +294,7 @@ Explain the underlying concept and reasoning.
     _questions[index] = _questions[index].copyWith(
       attempts: [..._questions[index].attempts, attempt],
     );
+    _saveQuestionsToStorage();
     notifyListeners();
   }
 

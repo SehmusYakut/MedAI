@@ -8,6 +8,7 @@ import '../services/ai_service.dart';
 import '../services/usage_limit_service.dart';
 import '../services/chat_storage_service.dart';
 import 'widgets/ai_response_card.dart';
+import '../l10n/app_localizations.dart';
 
 class AskAIScreen extends StatefulWidget {
   final String? sessionId;
@@ -57,6 +58,7 @@ class _AskAIScreenState extends State<AskAIScreen> {
 
   void _loadOrCreateSession() {
     final storage = Provider.of<ChatStorageService>(context, listen: false);
+    final l10n = AppLocalizations.of(context);
     if (_sessionId != null) {
       final sessions = storage.getAllSessions();
       final index = sessions.indexWhere((s) => s.id == _sessionId);
@@ -70,7 +72,7 @@ class _AskAIScreenState extends State<AskAIScreen> {
       _sessionId = newId;
       _session = ChatSession(
         id: newId,
-        title: 'New Clinical Case...',
+        title: l10n.newClinicalCase,
         lastInteraction: DateTime.now(),
         messages: [],
       );
@@ -98,9 +100,10 @@ class _AskAIScreenState extends State<AskAIScreen> {
           _availableServices = [];
           _selectedService = null;
         });
+        final l10n = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Configuration Error: ${e.toString()}'),
+            content: Text('${l10n.configError}: ${e.toString()}'),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
@@ -110,12 +113,13 @@ class _AskAIScreenState extends State<AskAIScreen> {
 
   Future<void> _askAI() async {
     if (_formKey.currentState!.validate()) {
+      final l10n = AppLocalizations.of(context);
       if (_selectedService == null) {
         if (_availableServices.isNotEmpty) {
           _selectedService = _availableServices.first.name;
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('No AI service available')),
+            SnackBar(content: Text(l10n.noAiServiceAvailable)),
           );
           return;
         }
@@ -130,6 +134,7 @@ class _AskAIScreenState extends State<AskAIScreen> {
         return;
       }
 
+      if (!mounted) return;
       final storage = Provider.of<ChatStorageService>(context, listen: false);
       final prompt = _promptController.text.trim();
       _promptController.clear();
@@ -201,22 +206,23 @@ class _AskAIScreenState extends State<AskAIScreen> {
   }
 
   void _showRenameDialog() {
+    final l10n = AppLocalizations.of(context);
     final controller = TextEditingController(text: _session?.title);
     showDialog(
       context: context,
       builder: (dialogCtx) => AlertDialog(
-        title: const Text('Rename Session'),
+        title: Text(l10n.renameSession),
         content: TextField(
           controller: controller,
-          decoration: const InputDecoration(
-            hintText: 'Enter session title...',
+          decoration: InputDecoration(
+            hintText: l10n.enterSessionTitle,
           ),
           autofocus: true,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogCtx),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           FilledButton(
             onPressed: () async {
@@ -224,13 +230,17 @@ class _AskAIScreenState extends State<AskAIScreen> {
               if (newTitle.isNotEmpty && _sessionId != null) {
                 final storage = Provider.of<ChatStorageService>(context, listen: false);
                 await storage.renameSession(_sessionId!, newTitle);
-                setState(() {
-                  _session = _session?.copyWith(title: newTitle);
-                });
-                if (mounted) Navigator.pop(dialogCtx);
+                if (mounted) {
+                  setState(() {
+                    _session = _session?.copyWith(title: newTitle);
+                  });
+                }
+                if (dialogCtx.mounted) {
+                  Navigator.pop(dialogCtx);
+                }
               }
             },
-            child: const Text('Save'),
+            child: Text(l10n.save),
           ),
         ],
       ),
@@ -238,15 +248,16 @@ class _AskAIScreenState extends State<AskAIScreen> {
   }
 
   void _showDeleteConfirmDialog() {
+    final l10n = AppLocalizations.of(context);
     showDialog(
       context: context,
       builder: (dialogCtx) => AlertDialog(
-        title: const Text('Delete Session?'),
-        content: const Text('This action cannot be undone. Are you sure you want to delete this case investigation?'),
+        title: Text(l10n.deleteSessionTitle),
+        content: Text(l10n.deleteSessionConfirm),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogCtx),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           FilledButton(
             style: FilledButton.styleFrom(
@@ -257,13 +268,15 @@ class _AskAIScreenState extends State<AskAIScreen> {
               if (_sessionId != null) {
                 final storage = Provider.of<ChatStorageService>(context, listen: false);
                 await storage.deleteSession(_sessionId!);
-                if (mounted) {
+                if (dialogCtx.mounted) {
                   Navigator.pop(dialogCtx); // Close dialog
+                }
+                if (mounted) {
                   Navigator.pop(context); // Pop back to HomeScreen
                 }
               }
             },
-            child: const Text('Delete'),
+            child: Text(l10n.delete),
           ),
         ],
       ),
@@ -271,46 +284,27 @@ class _AskAIScreenState extends State<AskAIScreen> {
   }
 
   Widget _buildQuickTemplates() {
+    final l10n = AppLocalizations.of(context);
     final cs = Theme.of(context).colorScheme;
-    final isTurkish = Localizations.localeOf(context).languageCode == 'tr';
 
-    final templates = isTurkish
-        ? [
-            {
-              'label': '🔬 Ayırıcı Tanı',
-              'prefix': 'Aşağıdaki klinik tablo için (birincil, ikincil ve elenmesi gereken durumları içerecek şekilde) ayırıcı tanı analizi yap: ',
-            },
-            {
-              'label': '💊 Farmakoloji ve Etkileşim',
-              'prefix': 'Şu ilaç/etken madde için etki mekanizmasını, klinik endikasyonlarını, önemli kontrendikasyonlarını ve kritik ilaç etkileşimlerini açıkla: ',
-            },
-            {
-              'label': '📊 Laboratuvar ve Görüntüleme',
-              'prefix': 'Aşağıdaki laboratuvar değerlerini veya görüntüleme bulgularını yorumla, klinik korelasyon kur ve atılması gereken bir sonraki en iyi tanısal adımı öner: ',
-            },
-            {
-              'label': '📚 TUS ve Komite Soru Mantığı',
-              'prefix': 'Bu klinik vakanın arkasındaki temel TUS/Komite mekanizmalarını ve patofizyolojik mantığı yüksek verimli (high-yield) bir şekilde analiz et: ',
-            },
-          ]
-        : [
-            {
-              'label': '🔬 Differential Diagnosis',
-              'prefix': 'Analyze the differential diagnosis (including primary, secondary, and rule-out conditions) for the following clinical presentation: ',
-            },
-            {
-              'label': '💊 Pharmacology & Interactions',
-              'prefix': 'Break down the mechanism of action, high-yield clinical indications, major contraindications, and critical drug interactions for: ',
-            },
-            {
-              'label': '📊 Lab & Imaging Interpreter',
-              'prefix': 'Interpret the following laboratory values or imaging findings, correlate them clinically, and suggest the next best diagnostic steps: ',
-            },
-            {
-              'label': '📚 TUS & Board Exam Logic',
-              'prefix': 'Extract and analyze the core, high-yield medical board principles and pathophysiological rationales behind this clinical vignette: ',
-            },
-          ];
+    final templates = [
+      {
+        'label': l10n.chipDdxLabel,
+        'prefix': l10n.chipDdxPrefix,
+      },
+      {
+        'label': l10n.chipPharmLabel,
+        'prefix': l10n.chipPharmPrefix,
+      },
+      {
+        'label': l10n.chipLabLabel,
+        'prefix': l10n.chipLabPrefix,
+      },
+      {
+        'label': l10n.chipBoardLabel,
+        'prefix': l10n.chipBoardPrefix,
+      },
+    ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -318,7 +312,7 @@ class _AskAIScreenState extends State<AskAIScreen> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
           child: Text(
-            isTurkish ? 'Hızlı Klinik Şablonlar' : 'Quick Clinical Templates',
+            l10n.quickClinicalTemplates,
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.bold,
@@ -366,6 +360,7 @@ class _AskAIScreenState extends State<AskAIScreen> {
   @override
   Widget build(BuildContext context) {
     final limitService = Provider.of<UsageLimitService>(context);
+    final l10n = AppLocalizations.of(context);
     final cs = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -376,15 +371,15 @@ class _AskAIScreenState extends State<AskAIScreen> {
         title: Column(
           children: [
             Text(
-              _session?.title ?? 'MedAI Chat',
+              _session?.title ?? l10n.medaiChat,
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
             Text(
               limitService.isPremium 
-                  ? '✨ PRO Tier: ${limitService.getRemainingRights()}/50 Daily Expert Cases' 
-                  : '🩺 ${limitService.getRemainingRights()}/5 Daily Clinical Cases Available',
+                  ? l10n.proTierCasesRemaining.replaceAll('{remaining}', limitService.getRemainingRights().toString()) 
+                  : l10n.freeTierCasesRemaining.replaceAll('{remaining}', limitService.getRemainingRights().toString()),
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.w600,
@@ -405,13 +400,13 @@ class _AskAIScreenState extends State<AskAIScreen> {
               }
             },
             itemBuilder: (context) => [
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'rename',
                 child: Row(
                   children: [
-                    Icon(Icons.edit_outlined, size: 20),
-                    SizedBox(width: 8),
-                    Text('Rename Session'),
+                    const Icon(Icons.edit_outlined, size: 20),
+                    const SizedBox(width: 8),
+                    Text(l10n.renameSession),
                   ],
                 ),
               ),
@@ -419,9 +414,9 @@ class _AskAIScreenState extends State<AskAIScreen> {
                 value: 'delete',
                 child: Row(
                   children: [
-                    Icon(Icons.delete_outline, color: Colors.red, size: 20),
+                    const Icon(Icons.delete_outline, color: Colors.red, size: 20),
                     const SizedBox(width: 8),
-                    const Text('Delete Session', style: TextStyle(color: Colors.red)),
+                    Text(l10n.delete, style: const TextStyle(color: Colors.red)),
                   ],
                 ),
               ),
@@ -442,7 +437,7 @@ class _AskAIScreenState extends State<AskAIScreen> {
                           Icon(Icons.chat_bubble_outline_rounded, size: 64, color: cs.primary.withValues(alpha: 0.5)),
                           const SizedBox(height: 16),
                           Text(
-                            'No responses yet. Ask a question to get started!',
+                            l10n.noResponses,
                             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                                   color: cs.onSurface.withValues(alpha: 0.6),
                                 ),
@@ -507,8 +502,8 @@ class _AskAIScreenState extends State<AskAIScreen> {
                               minLines: 1,
                               textInputAction: TextInputAction.newline,
                               decoration: InputDecoration(
-                                hintText: 'Ask anything...',
-                                labelText: 'Your Question',
+                                hintText: l10n.askAnything,
+                                labelText: l10n.yourQuestion,
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(16),
                                 ),
@@ -519,7 +514,7 @@ class _AskAIScreenState extends State<AskAIScreen> {
                               ),
                               validator: (value) {
                                 if (value == null || value.trim().isEmpty) {
-                                  return 'Please enter your question';
+                                  return l10n.enterQuestion;
                                 }
                                 return null;
                               },

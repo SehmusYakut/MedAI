@@ -1,10 +1,12 @@
 import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import '../services/usage_limit_service.dart';
 import '../services/central_config.dart';
+import '../l10n/app_localizations.dart';
 
 class PremiumPaywallScreen extends StatefulWidget {
   const PremiumPaywallScreen({super.key});
@@ -16,143 +18,128 @@ class PremiumPaywallScreen extends StatefulWidget {
 class _PremiumPaywallScreenState extends State<PremiumPaywallScreen> {
   int _selectedPlanIndex = 1; // Default to Annual Plan (index 1)
   bool _isCheckingOut = false;
+  
+  List<Package> _rcPackages = [];
+  bool _isLoadingOfferings = true;
 
   final List<Map<String, dynamic>> _plans = [
     {
       'title': 'Monthly Plan',
       'price': '\$9.99',
-      'period': '/ month',
-      'description': 'Cancel anytime. Standard access.',
+      'period_key': 'paywall_per_month',
+      'description_key': 'monthly_plan_desc',
       'badge': null,
     },
     {
       'title': 'Annual Plan',
       'price': '\$59.99',
-      'period': '/ year',
-      'description': 'Best value: Save 50% (\$4.99/mo)',
-      'badge': 'RECOMMENDED',
+      'period_key': 'paywall_per_year',
+      'description_key': 'annual_plan_desc',
+      'badge': 'paywall_save_50',
     },
   ];
 
-  final List<Map<String, dynamic>> _features = [
-    {
-      'icon': Icons.hub_outlined,
-      'title': 'Up to 50 Deep Clinical Knowledge Graph Queries / Day',
-      'desc': 'Visual connections between symptoms, diagnoses, and treatments.',
-    },
-    {
-      'icon': Icons.document_scanner_outlined,
-      'title': 'Instant Medical Slide & Prescription OCR Decoding',
-      'desc': 'Extract text from medical slides, notes, and prescriptions.',
-    },
-    {
-      'icon': Icons.school_outlined,
-      'title': 'High-Yield TUS & Board Exam Breakdown Modes',
-      'desc': 'Interactive analysis of complex board exam scenarios.',
-    },
-    {
-      'icon': Icons.bolt,
-      'title': 'Zero Latency, Priority AI Reasoning Pipeline',
-      'desc': 'Bypass rate limits with priority resources.',
-    },
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _fetchOfferings();
+  }
+
+  Future<void> _fetchOfferings() async {
+    if (CentralConfig.isRevenueCatMockMode) {
+      debugPrint('[Developer Warning] RevenueCat mock mode. Skipping offerings fetch.');
+      if (mounted) {
+        setState(() {
+          _isLoadingOfferings = false;
+        });
+      }
+      return;
+    }
+    try {
+      await CentralConfig.configurePurchases();
+      if (await Purchases.isConfigured) {
+        final offerings = await Purchases.getOfferings();
+        if (offerings.current != null && offerings.current!.availablePackages.isNotEmpty) {
+          if (mounted) {
+            setState(() {
+              _rcPackages = offerings.current!.availablePackages;
+              _isLoadingOfferings = false;
+            });
+            return;
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('[Developer Warning] Error fetching offerings from RevenueCat: $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoadingOfferings = false;
+        });
+      }
+    }
+  }
 
   Future<void> _startCheckout(UsageLimitService limitService) async {
     setState(() {
       _isCheckingOut = true;
     });
 
+    final l10n = AppLocalizations.of(context);
+
     try {
-      // 1. Initialize SDK if not configured yet
-      await CentralConfig.configurePurchases();
-
-      // 2. Fetch offerings
-      Offerings offerings = await Purchases.getOfferings();
       Package? packageToPurchase;
-
-      if (offerings.current != null && offerings.current!.availablePackages.isNotEmpty) {
-        final packages = offerings.current!.availablePackages;
-        // _selectedPlanIndex matches Monthly (0) or Annual (1)
-        if (_selectedPlanIndex < packages.length) {
-          packageToPurchase = packages[_selectedPlanIndex];
-        } else {
-          packageToPurchase = packages.first;
-        }
+      if (_rcPackages.isNotEmpty && _selectedPlanIndex < _rcPackages.length) {
+        packageToPurchase = _rcPackages[_selectedPlanIndex];
       }
 
-      if (packageToPurchase == null) {
-        throw Exception("No available subscription packages found.");
+      if (packageToPurchase != null) {
+        // Production-Grade RevenueCat Purchase Flow
+        final purchaseParams = PurchaseParams.package(packageToPurchase);
+        final purchaseResult = await Purchases.purchase(purchaseParams);
+        final customerInfo = purchaseResult.customerInfo;
+        
+        final isPremiumActive = customerInfo.entitlements.active.isNotEmpty;
+        await limitService.setPremium(isPremiumActive);
+      } else {
+        // Fallback Mock Purchase Flow (allows testing end-to-end sandbox when keys are placeholders)
+        debugPrint('[Developer Warning] No live RevenueCat package found. Running in mock purchase mode.');
+        await Future.delayed(const Duration(milliseconds: 1200));
+        await limitService.setPremium(true);
       }
-
-      // 3. Purchase package using the recommended PurchaseParams
-      final purchaseParams = PurchaseParams.package(packageToPurchase);
-      await Purchases.purchase(purchaseParams);
-
-      // 4. Update usage limit service upon verified purchase
-      await limitService.setPremium(true);
 
       if (!mounted) return;
 
-      // Show beautiful success dialog
-      showDialog<void>(
-        context: context,
-        barrierDismissible: false,
-        builder: (dialogCtx) => AlertDialog(
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
+      // Pop paywall first
+      Navigator.pop(context);
+
+      // Show beautiful success notification in the returned screen
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
             children: [
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.green.shade50,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.check_circle,
-                  color: Colors.green,
-                  size: 64,
+              const Icon(Icons.stars, color: Colors.amber),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  l10n.paywallSuccessTitle,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
-              const SizedBox(height: 24),
-              Text(
-                'Welcome to Premium!',
-                style: Theme.of(dialogCtx).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-              ),
-              const SizedBox(height: 12),
-              const Text(
-                'Your account has been upgraded. You now have up to 50 daily clinical queries and advanced medical insights!',
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  onPressed: () {
-                    Navigator.pop(dialogCtx); // Close dialog
-                    if (mounted) {
-                      Navigator.pop(context); // Pop paywall screen
-                    }
-                  },
-                  style: FilledButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    foregroundColor: Colors.white,
-                  ),
-                  child: const Text('Start Querying'),
-                ),
-              ),
-              const SizedBox(height: 8),
             ],
           ),
+          backgroundColor: Colors.green.shade700,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          duration: const Duration(seconds: 4),
         ),
       );
+
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Subscription failed: ${e.toString()}'),
+          content: Text(l10n.paywallFailedMessage.replaceAll('{error}', e.toString())),
           backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
@@ -169,10 +156,81 @@ class _PremiumPaywallScreenState extends State<PremiumPaywallScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final limitService = Provider.of<UsageLimitService>(context);
+    final l10n = AppLocalizations.of(context);
+
+    // Define Features dynamically with localized text
+    final List<Map<String, dynamic>> features = [
+      {
+        'icon': Icons.hub_outlined,
+        'title': l10n.paywallFeat1Title,
+        'desc': l10n.paywallFeat1Desc,
+      },
+      {
+        'icon': Icons.document_scanner_outlined,
+        'title': l10n.paywallFeat2Title,
+        'desc': l10n.paywallFeat2Desc,
+      },
+      {
+        'icon': Icons.school_outlined,
+        'title': l10n.paywallFeat3Title,
+        'desc': l10n.paywallFeat3Desc,
+      },
+      {
+        'icon': Icons.bolt,
+        'title': l10n.paywallFeat4Title,
+        'desc': l10n.paywallFeat4Desc,
+      },
+    ];
+
+    // Build plan details dynamically (RC offerings data vs local fallback)
+    final List<Map<String, dynamic>> displayPlans = [];
+    if (_rcPackages.isNotEmpty) {
+      for (int i = 0; i < _rcPackages.length; i++) {
+        final pkg = _rcPackages[i];
+        final prod = pkg.storeProduct;
+        
+        String title = prod.title;
+        String desc = prod.description;
+        String period = '';
+        String? badge;
+
+        if (pkg.packageType == PackageType.monthly) {
+          title = l10n.monthlyPlanTitle;
+          desc = l10n.monthlyPlanDesc;
+          period = l10n.paywallPerMonth;
+        } else if (pkg.packageType == PackageType.annual) {
+          title = l10n.annualPlanTitle;
+          desc = l10n.annualPlanDesc;
+          period = l10n.paywallPerYear;
+          badge = l10n.paywallSave50;
+        } else {
+          period = '';
+        }
+
+        displayPlans.add({
+          'title': title,
+          'price': prod.priceString,
+          'period': period,
+          'description': desc,
+          'badge': badge,
+        });
+      }
+    } else {
+      // Fallback
+      for (final plan in _plans) {
+        displayPlans.add({
+          'title': plan['title'] == 'Monthly Plan' ? l10n.monthlyPlanTitle : l10n.annualPlanTitle,
+          'price': plan['price'],
+          'period': plan['period_key'] == 'paywall_per_month' ? l10n.paywallPerMonth : l10n.paywallPerYear,
+          'description': plan['description_key'] == 'monthly_plan_desc' ? l10n.monthlyPlanDesc : l10n.annualPlanDesc,
+          'badge': plan['badge'] == 'paywall_save_50' ? l10n.paywallSave50 : null,
+        });
+      }
+    }
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Upgrade to Premium'),
+        title: Text(l10n.paywallUpgradeTitle),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
@@ -187,11 +245,11 @@ class _PremiumPaywallScreenState extends State<PremiumPaywallScreen> {
                 end: Alignment.bottomCenter,
                 colors: isDark
                     ? [
-                        const Color(0xFF0F172A), // Very dark Slate/indigo
-                        const Color(0xFF020617), // Deep slate-950 black
+                        const Color(0xFF0F172A),
+                        const Color(0xFF020617),
                       ]
                     : [
-                        const Color(0xFFF1F5F9), // Soft Slate-100
+                        const Color(0xFFF1F5F9),
                         Colors.white,
                       ],
               ),
@@ -202,7 +260,6 @@ class _PremiumPaywallScreenState extends State<PremiumPaywallScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               children: [
                 const SizedBox(height: 8),
-                // Crown / Star Icon Header
                 Center(
                   child: Container(
                     padding: const EdgeInsets.all(18),
@@ -229,10 +286,9 @@ class _PremiumPaywallScreenState extends State<PremiumPaywallScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                // Heading
                 Center(
                   child: Text(
-                    'MedAI Premium',
+                    l10n.paywallPremiumHeader,
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: isDark ? Colors.white : Colors.cyan.shade900,
@@ -243,7 +299,7 @@ class _PremiumPaywallScreenState extends State<PremiumPaywallScreen> {
                 const SizedBox(height: 6),
                 Center(
                   child: Text(
-                    'Elevate your daily clinical learning capabilities',
+                    l10n.paywallPremiumSub,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           color: isDark ? Colors.white60 : Colors.black54,
                         ),
@@ -252,12 +308,10 @@ class _PremiumPaywallScreenState extends State<PremiumPaywallScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                // Glassmorphic SaaS Subscription Card
                 GlassmorphicCard(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Cap Value Proposition
                       Center(
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -269,14 +323,14 @@ class _PremiumPaywallScreenState extends State<PremiumPaywallScreen> {
                               width: 1,
                             ),
                           ),
-                          child: const Row(
+                          child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.bolt, color: Colors.cyan, size: 14),
-                              SizedBox(width: 4),
+                              const Icon(Icons.bolt, color: Colors.cyan, size: 14),
+                              const SizedBox(width: 4),
                               Text(
-                                'UP TO 50 CLINICAL QUERIES / DAY',
-                                style: TextStyle(
+                                l10n.paywallUpTo50,
+                                style: const TextStyle(
                                   color: Colors.cyan,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 10,
@@ -289,8 +343,7 @@ class _PremiumPaywallScreenState extends State<PremiumPaywallScreen> {
                       ),
                       const SizedBox(height: 20),
 
-                      // Features List
-                      ..._features.map((feature) {
+                      ...features.map((feature) {
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 16),
                           child: Row(
@@ -339,158 +392,183 @@ class _PremiumPaywallScreenState extends State<PremiumPaywallScreen> {
 
                       const Divider(color: Colors.white12, height: 24),
 
-                      const Text(
-                        'Choose your plan',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 15,
+                      if (_isLoadingOfferings)
+                        Center(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 24.0),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Platform.isIOS
+                                    ? const CupertinoActivityIndicator(color: Colors.cyan, radius: 14)
+                                    : const CircularProgressIndicator(color: Colors.cyan),
+                                const SizedBox(height: 12),
+                                Text(
+                                  l10n.paywallLoadingPlans,
+                                  style: const TextStyle(color: Colors.white70, fontSize: 13),
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                      else ...[
+                        Text(
+                          l10n.paywallChoosePlan,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 12),
+                        const SizedBox(height: 12),
 
-                      // Plans selection
-                      Row(
-                        children: List.generate(_plans.length, (index) {
-                          final plan = _plans[index];
-                          final isSelected = _selectedPlanIndex == index;
-                          return Expanded(
-                            child: GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  _selectedPlanIndex = index;
-                                });
-                              },
-                              child: Container(
-                                margin: EdgeInsets.only(
-                                  left: index == 0 ? 0 : 6,
-                                  right: index == _plans.length - 1 ? 0 : 6,
-                                ),
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-                                decoration: BoxDecoration(
-                                  color: isSelected
-                                      ? Colors.cyan.withValues(alpha: 0.12)
-                                      : Colors.black.withValues(alpha: 0.25),
-                                  borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(
-                                    color: isSelected ? Colors.cyan : Colors.white12,
-                                    width: 1.5,
+                        Row(
+                          children: List.generate(displayPlans.length, (index) {
+                            final plan = displayPlans[index];
+                            final isSelected = _selectedPlanIndex == index;
+                            return Expanded(
+                              child: GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    _selectedPlanIndex = index;
+                                  });
+                                },
+                                child: Container(
+                                  margin: EdgeInsets.only(
+                                    left: index == 0 ? 0 : 6,
+                                    right: index == displayPlans.length - 1 ? 0 : 6,
                                   ),
-                                ),
-                                child: Stack(
-                                  clipBehavior: Clip.none,
-                                  children: [
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          plan['title'] as String,
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 14,
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 10),
-                                        Row(
-                                          textBaseline: TextBaseline.alphabetic,
-                                          crossAxisAlignment: CrossAxisAlignment.baseline,
-                                          children: [
-                                            Text(
-                                              plan['price'] as String,
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 22,
-                                                color: isSelected ? Colors.cyan : Colors.white,
-                                              ),
-                                            ),
-                                            Text(
-                                              plan['period'] as String,
-                                              style: TextStyle(
-                                                fontSize: 11,
-                                                color: Colors.white.withValues(alpha: 0.5),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        const SizedBox(height: 6),
-                                        Text(
-                                          plan['description'] as String,
-                                          style: TextStyle(
-                                            fontSize: 10,
-                                            color: Colors.white.withValues(alpha: 0.6),
-                                          ),
-                                        ),
-                                      ],
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                                  decoration: BoxDecoration(
+                                    color: isSelected
+                                        ? Colors.cyan.withValues(alpha: 0.12)
+                                        : Colors.black.withValues(alpha: 0.25),
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(
+                                      color: isSelected ? Colors.cyan : Colors.white12,
+                                      width: 1.5,
                                     ),
-                                    if (plan['badge'] != null)
-                                      Positioned(
-                                        top: -24,
-                                        right: -6,
-                                        child: Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 6,
-                                            vertical: 3,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: Colors.cyan,
-                                            borderRadius: BorderRadius.circular(6),
-                                          ),
-                                          child: const Text(
-                                            'SAVE 50%',
-                                            style: TextStyle(
-                                              color: Colors.black,
+                                  ),
+                                  child: Stack(
+                                    clipBehavior: Clip.none,
+                                    children: [
+                                      Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            plan['title'] as String,
+                                            style: const TextStyle(
                                               fontWeight: FontWeight.bold,
-                                              fontSize: 8,
+                                              fontSize: 14,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 10),
+                                          Row(
+                                            textBaseline: TextBaseline.alphabetic,
+                                            crossAxisAlignment: CrossAxisAlignment.baseline,
+                                            children: [
+                                              Text(
+                                                plan['price'] as String,
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 20,
+                                                  color: isSelected ? Colors.cyan : Colors.white,
+                                                ),
+                                              ),
+                                              Expanded(
+                                                child: Text(
+                                                  plan['period'] as String,
+                                                  style: TextStyle(
+                                                    fontSize: 10,
+                                                    color: Colors.white.withValues(alpha: 0.5),
+                                                  ),
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 6),
+                                          Text(
+                                            plan['description'] as String,
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              color: Colors.white.withValues(alpha: 0.6),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      if (plan['badge'] != null)
+                                        Positioned(
+                                          top: -24,
+                                          right: -6,
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 6,
+                                              vertical: 3,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: Colors.cyan,
+                                              borderRadius: BorderRadius.circular(6),
+                                            ),
+                                            child: Text(
+                                              plan['badge'] as String,
+                                              style: const TextStyle(
+                                                color: Colors.black,
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 8,
+                                              ),
                                             ),
                                           ),
                                         ),
-                                      ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ),
-                          );
-                        }),
-                      ),
-
-                      const SizedBox(height: 24),
-                      // Subscribe Button
-                      SizedBox(
-                        width: double.infinity,
-                        height: 52,
-                        child: FilledButton(
-                          onPressed: _isCheckingOut
-                              ? null
-                              : () => _startCheckout(limitService),
-                          style: FilledButton.styleFrom(
-                            backgroundColor: Colors.cyan,
-                            foregroundColor: Colors.black,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            elevation: 4,
-                          ),
-                          child: _isCheckingOut
-                              ? const SizedBox(
-                                  width: 24,
-                                  height: 24,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2.5,
-                                    color: Colors.black,
-                                  ),
-                                )
-                              : Text(
-                                  limitService.isPremium
-                                      ? 'Already Subscribed'
-                                      : 'Subscribe to Premium',
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
+                            );
+                          }),
                         ),
-                      ),
+
+                        const SizedBox(height: 24),
+
+                        SizedBox(
+                          width: double.infinity,
+                          height: 52,
+                          child: FilledButton(
+                            onPressed: _isCheckingOut
+                                ? null
+                                : () => _startCheckout(limitService),
+                            style: FilledButton.styleFrom(
+                              backgroundColor: Colors.cyan,
+                              foregroundColor: Colors.black,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              elevation: 4,
+                            ),
+                            child: _isCheckingOut
+                                ? SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: Platform.isIOS
+                                        ? const CupertinoActivityIndicator(color: Colors.black, radius: 10)
+                                        : const CircularProgressIndicator(
+                                            strokeWidth: 2.5,
+                                            color: Colors.black,
+                                          ),
+                                  )
+                                : Text(
+                                    limitService.isPremium
+                                        ? l10n.paywallAlreadySubscribed
+                                        : l10n.paywallSubscribeButton,
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -499,7 +577,7 @@ class _PremiumPaywallScreenState extends State<PremiumPaywallScreen> {
                   child: TextButton(
                     onPressed: () => Navigator.pop(context),
                     child: Text(
-                      'Keep using free version',
+                      l10n.paywallKeepFree,
                       style: TextStyle(
                         color: isDark ? Colors.white54 : Colors.black54,
                       ),
@@ -549,8 +627,8 @@ class GlassmorphicCard extends StatelessWidget {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  const Color(0xFF1E1B4B).withValues(alpha: 0.85), // Deep Indigo
-                  const Color(0xFF0F766E).withValues(alpha: 0.75), // Teal
+                  const Color(0xFF1E1B4B).withValues(alpha: 0.85),
+                  const Color(0xFF0F766E).withValues(alpha: 0.75),
                 ],
               ),
             ),

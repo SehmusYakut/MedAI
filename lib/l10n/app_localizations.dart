@@ -120,7 +120,7 @@ class AppLocalizations {
       'time_noon': 'Noon 13:00',
       'time_evening': 'Evening 20:00',
       'add_description': 'Add description',
-      'your_clinical_co_pilot': 'Your Clinical AI Co-Pilot. Instant Evidence-Based Diagnostic Insights.',
+      'your_clinical_co_pilot': 'Your Clinical AI Co-Pilot. Evidence-Based Diagnostic Insights.',
       'continue_with_google': 'Continue with Google',
       'sign_in_failed': 'Sign-in failed',
       'signing_in': 'Signing in...',
@@ -133,6 +133,91 @@ class AppLocalizations {
       'select_track_in_settings': 'Select your curriculum track in settings',
       'current_track': 'Current Track: ',
       'start_clinical_query': 'Start Clinical Query',
+
+      // NEW LOCALIZATION KEYS EN
+      'welcome_counselor': 'Welcome back, Counselor.',
+      'clinical_focus_today': 'What is your clinical focus today?',
+      'launch_new_query': 'Launch New Clinical Query',
+      'launch_new_query_desc': 'Start a brand-new diagnostic session with AI clinical reasoning.',
+      'student_profile_preferences': 'Student Profile & Preferences',
+      'student_profile_preferences_desc': 'Academic level, localization, and theme options',
+      'recent_case_investigations': 'Recent Case Investigations',
+      'no_recent_cases': 'No recent case investigations.',
+      'active_sessions_desc': 'Your active clinical study sessions will appear here.',
+      'delete_case_title': 'Delete Case?',
+      'delete_case_confirm': 'Are you sure you want to permanently delete this case investigation from your device?',
+      'messages_count_label': 'messages',
+      'new_clinical_case': 'New Clinical Case...',
+      'config_error': 'Configuration Error',
+      'no_ai_service_available': 'No AI service available',
+      'rename_session': 'Rename Session',
+      'enter_session_title': 'Enter session title...',
+      'delete_session_title': 'Delete Session?',
+      'delete_session_confirm': 'This action cannot be undone. Are you sure you want to delete this case investigation?',
+      'quick_clinical_templates': 'Quick Clinical Templates',
+      'medai_chat': 'MedAI Chat',
+      'pro_tier_cases_remaining': '✨ PRO Tier: {remaining}/50 Daily Expert Cases',
+      'free_tier_cases_remaining': '🩺 {remaining}/5 Daily Clinical Cases Available',
+      
+      // Chips
+      'chip_ddx_label': '🔬 Differential Diagnosis',
+      'chip_ddx_prefix': 'Analyze the differential diagnosis (including primary, secondary, and rule-out conditions) for the following clinical presentation: ',
+      'chip_pharm_label': '💊 Pharmacology & Interactions',
+      'chip_pharm_prefix': 'Break down the mechanism of action, high-yield clinical indications, major contraindications, and critical drug interactions for: ',
+      'chip_lab_label': '📊 Lab & Imaging Interpreter',
+      'chip_lab_prefix': 'Interpret the following laboratory values or imaging findings, correlate them clinically, and suggest the next best diagnostic steps: ',
+      'chip_board_label': '📚 TUS & Board Exam Logic',
+      'chip_board_prefix': 'Extract and analyze the core, high-yield medical board principles and pathophysiological rationales behind this clinical vignette: ',
+
+      // Paywall
+      'paywall_feat1_title': 'Up to 50 Deep Clinical Knowledge Graph Queries / Day',
+      'paywall_feat1_desc': 'Visual connections between symptoms, diagnoses, and treatments.',
+      'paywall_feat2_title': 'Instant Medical Slide & Prescription OCR Decoding',
+      'paywall_feat2_desc': 'Extract text from medical slides, notes, and prescriptions.',
+      'paywall_feat3_title': 'High-Yield TUS & Board Exam Breakdown Modes',
+      'paywall_feat3_desc': 'Interactive analysis of complex board exam scenarios.',
+      'paywall_feat4_title': 'Zero Latency, Priority AI Reasoning Pipeline',
+      'paywall_feat4_desc': 'Bypass rate limits with priority resources.',
+      'monthly_plan_title': 'Monthly Plan',
+      'monthly_plan_desc': 'Cancel anytime. Standard access.',
+      'annual_plan_title': 'Annual Plan',
+      'annual_plan_desc': 'Best value: Save 50% (\$4.99/mo)',
+      'paywall_per_month': '/ month',
+      'paywall_per_year': '/ year',
+      'paywall_choose_plan': 'Choose your plan',
+      'paywall_save_50': 'SAVE 50%',
+      'paywall_already_subscribed': 'Already Subscribed',
+      'paywall_subscribe_button': 'Subscribe to Premium',
+      'paywall_keep_free': 'Keep using free version',
+      'paywall_upgrade_title': 'Upgrade to Premium',
+      'paywall_premium_header': 'MedAI Premium',
+      'paywall_premium_sub': 'Elevate your daily clinical learning capabilities',
+      'paywall_up_to_50': 'UP TO 50 CLINICAL QUERIES / DAY',
+      'paywall_success_title': 'Welcome to Premium!',
+      'paywall_success_desc': 'Your account has been upgraded. You now have up to 50 daily clinical queries and advanced medical insights!',
+      'paywall_success_button': 'Start Querying',
+      'paywall_failed_message': 'Subscription failed: {error}',
+      'paywall_loading_plans': 'Loading plans...',
+
+      // Profile
+      'app_preferences': 'App Preferences',
+      'profile_settings_title': 'Profile & Settings',
+      'sign_out_account': 'Sign Out of Account',
+      'medical_professional': 'Medical Professional',
+
+      // Question Bank
+      'question_bank': 'Question Bank',
+      'question_bank_desc': 'Review scanned textbook questions and track your performance.',
+      'success_rate': 'Success Rate',
+      'avg_time': 'Avg Time',
+      'total_questions': 'Total Questions',
+      'mark_correct': 'Mark Correct',
+      'mark_incorrect': 'Mark Incorrect',
+      'attempts': 'attempts',
+      'no_questions_saved': 'No questions saved yet',
+      'no_questions_saved_desc': 'Use the OCR Scanner to scan and save medical questions.',
+      'question_details': 'Question Details',
+      'performance': 'Performance',
     },
     'tr': {
       'app_title': 'MedAI',
@@ -241,7 +326,7 @@ class AppLocalizations {
       'time_noon': 'Öğle 13:00',
       'time_evening': 'Akşam 20:00',
       'add_description': 'Açıklama ekle',
-      'your_clinical_co_pilot': 'Klinik Yapay Zeka Asistanınız. Anında Kanıta Dayalı Teşhis Analizleri.',
+      'your_clinical_co_pilot': 'Klinik Yapay Zeka Asistanınız. Kanıta Dayalı Teşhis Analizleri.',
       'continue_with_google': 'Google ile Devam Et',
       'sign_in_failed': 'Giriş başarısız oldu',
       'signing_in': 'Giriş yapılıyor...',
@@ -254,6 +339,91 @@ class AppLocalizations {
       'select_track_in_settings': 'Ayarlardan müfredat dönemini seçin',
       'current_track': 'Aktif Dönem: ',
       'start_clinical_query': 'Klinik Vaka Sorgusu Başlat',
+
+      // NEW LOCALIZATION KEYS TR
+      'welcome_counselor': 'Hoş geldiniz, Danışman.',
+      'clinical_focus_today': 'Bugünkü klinik odağınız nedir?',
+      'launch_new_query': 'Klinik Vaka Sorgusu Başlat',
+      'launch_new_query_desc': 'Yapay zeka klinik muhakemesiyle yepyeni bir teşhis seansı başlatın.',
+      'student_profile_preferences': 'Öğrenci Profili & Tercihleri',
+      'student_profile_preferences_desc': 'Akademik seviye, dil seçeneği ve tema ayarları',
+      'recent_case_investigations': 'Son Vaka İncelemeleri',
+      'no_recent_cases': 'Son vaka incelemesi bulunmuyor.',
+      'active_sessions_desc': 'Aktif klinik çalışma seanslarınız burada görünecektir.',
+      'delete_case_title': 'Vakayı Sil?',
+      'delete_case_confirm': 'Bu vaka incelemesini cihazınızdan kalıcı olarak silmek istediğinizden emin misiniz?',
+      'messages_count_label': 'mesaj',
+      'new_clinical_case': 'Yeni Klinik Vaka...',
+      'config_error': 'Yapılandırma Hatası',
+      'no_ai_service_available': 'Kullanılabilir yapay zeka servisi yok',
+      'rename_session': 'Seansı Yeniden Adlandır',
+      'enter_session_title': 'Seans başlığı girin...',
+      'delete_session_title': 'Seansı Sil?',
+      'delete_session_confirm': 'Bu işlem geri alınamaz. Bu vaka incelemesini silmek istediğinizden emin misiniz?',
+      'quick_clinical_templates': 'Hızlı Klinik Şablonlar',
+      'medai_chat': 'MedAI Sohbet',
+      'pro_tier_cases_remaining': '✨ PRO Üyelik: Günlük {remaining}/50 Uzman Vaka Hakkı',
+      'free_tier_cases_remaining': '🩺 Günlük {remaining}/5 Klinik Vaka Hakkı',
+      
+      // Chips
+      'chip_ddx_label': '🔬 Ayırıcı Tanı',
+      'chip_ddx_prefix': 'Aşağıdaki klinik tablo için (birincil, ikincil ve elenmesi gereken durumları içerecek şekilde) ayırıcı tanı analizi yap: ',
+      'chip_pharm_label': '💊 Farmakoloji ve Etkileşim',
+      'chip_pharm_prefix': 'Şu ilaç/etken madde için etki mekanizmasını, klinik endikasyonlarını, önemli kontrendikasyonlarını ve kritik ilaç etkileşimlerini açıkla: ',
+      'chip_lab_label': '📊 Laboratuvar ve Görüntüleme',
+      'chip_lab_prefix': 'Aşağıdaki laboratuvar değerlerini veya görüntüleme bulgularını yorumla, klinik korelasyon kur ve atılması gereken bir sonraki en iyi tanısal adımı öner: ',
+      'chip_board_label': '📚 TUS ve Komite Soru Mantığı',
+      'chip_board_prefix': 'Bu klinik vakanın arkasındaki temel TUS/Komite mekanizmalarını ve patofizyolojik mantığı yüksek verimli (high-yield) bir şekilde analiz et: ',
+
+      // Paywall
+      'paywall_feat1_title': 'Günlük En Fazla 50 Derin Klinik Bilgi Grafiği Sorgusu',
+      'paywall_feat1_desc': 'Semptomlar, tanılar ve tedaviler arasında görsel bağlantılar.',
+      'paywall_feat2_title': 'Anında Tıbbi Slayt ve Reçete OCR Çözümleme',
+      'paywall_feat2_desc': 'Tıbbi slaytlar, notlar ve reçetelerden metin çıkarın.',
+      'paywall_feat3_title': 'Yüksek Verimli TUS ve Sınav Analiz Modları',
+      'paywall_feat3_desc': 'Karmaşık kurul sınavı senaryolarının etkileşimli analizi.',
+      'paywall_feat4_title': 'Sıfır Gecikmeli, Öncelikli Yapay Zeka Mantık Akışı',
+      'paywall_feat4_desc': 'Öncelikli kaynaklarla hız sınırlarını atlayın.',
+      'monthly_plan_title': 'Aylık Plan',
+      'monthly_plan_desc': 'İstediğiniz zaman iptal edin. Standart erişim.',
+      'annual_plan_title': 'Yıllık Plan',
+      'annual_plan_desc': 'En iyi fiyat: %50 Tasarruf et (Aylık \$4.99)',
+      'paywall_per_month': ' / ay',
+      'paywall_per_year': ' / yıl',
+      'paywall_choose_plan': 'Planınızı seçin',
+      'paywall_save_50': '%50 TASARRUF',
+      'paywall_already_subscribed': 'Zaten Abone Olundu',
+      'paywall_subscribe_button': 'Premium\'a Abone Ol',
+      'paywall_keep_free': 'Ücretsiz sürümü kullanmaya devam et',
+      'paywall_upgrade_title': 'Premium\'a Yükselt',
+      'paywall_premium_header': 'MedAI Premium',
+      'paywall_premium_sub': 'Günlük klinik öğrenme yeteneklerinizi yükseltin',
+      'paywall_up_to_50': 'GÜNLÜK 50 KLİNİK VAKA HAKKI',
+      'paywall_success_title': 'Premium\'a Hoş Geldiniz!',
+      'paywall_success_desc': 'Hesabınız yükseltildi. Artık günlük 50 klinik vaka hakkına ve gelişmiş tıbbi analizlere sahipsiniz!',
+      'paywall_success_button': 'Sorgulamaya Başla',
+      'paywall_failed_message': 'Abonelik başarısız: {error}',
+      'paywall_loading_plans': 'Planlar yükleniyor...',
+
+      // Profile
+      'app_preferences': 'Uygulama Tercihleri',
+      'profile_settings_title': 'Profil & Ayarlar',
+      'sign_out_account': 'Hesaptan Çıkış Yap',
+      'medical_professional': 'Tıp Uzmanı',
+
+      // Question Bank
+      'question_bank': 'Soru Bankası',
+      'question_bank_desc': 'Taranan kitap sorularını inceleyin ve performansınızı takip edin.',
+      'success_rate': 'Başarı Oranı',
+      'avg_time': 'Ort. Süre',
+      'total_questions': 'Toplam Soru',
+      'mark_correct': 'Doğru İşaretle',
+      'mark_incorrect': 'Yanlış İşaretle',
+      'attempts': 'deneme',
+      'no_questions_saved': 'Henüz kaydedilmiş soru yok',
+      'no_questions_saved_desc': 'Tıbbi soruları taramak ve kaydetmek için OCR Tarayıcıyı kullanın.',
+      'question_details': 'Soru Detayları',
+      'performance': 'Performans',
     },
   };
 
@@ -336,6 +506,92 @@ class AppLocalizations {
   String get selectTrackInSettings => translate('select_track_in_settings');
   String get currentTrackLabel => translate('current_track');
   String get startClinicalQuery => translate('start_clinical_query');
+
+  // Dynamic getters for new localization keys
+  String get noResponses => translate('no_responses');
+  String get welcomeCounselor => translate('welcome_counselor');
+  String get clinicalFocusToday => translate('clinical_focus_today');
+  String get launchNewQuery => translate('launch_new_query');
+  String get launchNewQueryDesc => translate('launch_new_query_desc');
+  String get studentProfilePreferences => translate('student_profile_preferences');
+  String get studentProfilePreferencesDesc => translate('student_profile_preferences_desc');
+  String get recentCaseInvestigations => translate('recent_case_investigations');
+  String get noRecentCases => translate('no_recent_cases');
+  String get activeSessionsDesc => translate('active_sessions_desc');
+  String get deleteCaseTitle => translate('delete_case_title');
+  String get deleteCaseConfirm => translate('delete_case_confirm');
+  String get messagesCountLabel => translate('messages_count_label');
+  String get newClinicalCase => translate('new_clinical_case');
+  String get configError => translate('config_error');
+  String get noAiServiceAvailable => translate('no_ai_service_available');
+  String get renameSession => translate('rename_session');
+  String get enterSessionTitle => translate('enter_session_title');
+  String get deleteSessionTitle => translate('delete_session_title');
+  String get deleteSessionConfirm => translate('delete_session_confirm');
+  String get quickClinicalTemplates => translate('quick_clinical_templates');
+  String get medaiChat => translate('medai_chat');
+  String get proTierCasesRemaining => translate('pro_tier_cases_remaining');
+  String get freeTierCasesRemaining => translate('free_tier_cases_remaining');
+  
+  // Chips
+  String get chipDdxLabel => translate('chip_ddx_label');
+  String get chipDdxPrefix => translate('chip_ddx_prefix');
+  String get chipPharmLabel => translate('chip_pharm_label');
+  String get chipPharmPrefix => translate('chip_pharm_prefix');
+  String get chipLabLabel => translate('chip_lab_label');
+  String get chipLabPrefix => translate('chip_lab_prefix');
+  String get chipBoardLabel => translate('chip_board_label');
+  String get chipBoardPrefix => translate('chip_board_prefix');
+
+  // Paywall
+  String get paywallFeat1Title => translate('paywall_feat1_title');
+  String get paywallFeat1Desc => translate('paywall_feat1_desc');
+  String get paywallFeat2Title => translate('paywall_feat2_title');
+  String get paywallFeat2Desc => translate('paywall_feat2_desc');
+  String get paywallFeat3Title => translate('paywall_feat3_title');
+  String get paywallFeat3Desc => translate('paywall_feat3_desc');
+  String get paywallFeat4Title => translate('paywall_feat4_title');
+  String get paywallFeat4Desc => translate('paywall_feat4_desc');
+  String get monthlyPlanTitle => translate('monthly_plan_title');
+  String get monthlyPlanDesc => translate('monthly_plan_desc');
+  String get annualPlanTitle => translate('annual_plan_title');
+  String get annualPlanDesc => translate('annual_plan_desc');
+  String get paywallPerMonth => translate('paywall_per_month');
+  String get paywallPerYear => translate('paywall_per_year');
+  String get paywallChoosePlan => translate('paywall_choose_plan');
+  String get paywallSave50 => translate('paywall_save_50');
+  String get paywallAlreadySubscribed => translate('paywall_already_subscribed');
+  String get paywallSubscribeButton => translate('paywall_subscribe_button');
+  String get paywallKeepFree => translate('paywall_keep_free');
+  String get paywallUpgradeTitle => translate('paywall_upgrade_title');
+  String get paywallPremiumHeader => translate('paywall_premium_header');
+  String get paywallPremiumSub => translate('paywall_premium_sub');
+  String get paywallUpTo50 => translate('paywall_up_to_50');
+  String get paywallSuccessTitle => translate('paywall_success_title');
+  String get paywallSuccessDesc => translate('paywall_success_desc');
+  String get paywallSuccessButton => translate('paywall_success_button');
+  String get paywallFailedMessage => translate('paywall_failed_message');
+  String get paywallLoadingPlans => translate('paywall_loading_plans');
+
+  // Profile
+  String get appPreferences => translate('app_preferences');
+  String get profileSettingsTitle => translate('profile_settings_title');
+  String get signOutAccount => translate('sign_out_account');
+  String get medicalProfessional => translate('medical_professional');
+
+  // Question Bank
+  String get questionBank => translate('question_bank');
+  String get questionBankDesc => translate('question_bank_desc');
+  String get successRate => translate('success_rate');
+  String get avgTime => translate('avg_time');
+  String get totalQuestions => translate('total_questions');
+  String get markCorrect => translate('mark_correct');
+  String get markIncorrect => translate('mark_incorrect');
+  String get attempts => translate('attempts');
+  String get noQuestionsSaved => translate('no_questions_saved');
+  String get noQuestionsSavedDesc => translate('no_questions_saved_desc');
+  String get questionDetails => translate('question_details');
+  String get performance => translate('performance');
 }
 
 class _AppLocalizationsDelegate

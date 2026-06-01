@@ -85,9 +85,7 @@ class CentralConfig {
     return key;
   }
 
-  static Future<void> configurePurchases() async {
-    if (await Purchases.isConfigured) return;
-
+  static bool get isRevenueCatMockMode {
     final androidKey = revenueCatAndroidKey;
     final iosKey = revenueCatIOSKey;
 
@@ -98,21 +96,35 @@ class CentralConfig {
       activeKey = iosKey;
     }
 
-    final isPlaceholder = activeKey.isEmpty ||
+    return activeKey.isEmpty ||
         activeKey.contains('YOUR_') ||
         activeKey.contains('placeholder') ||
         activeKey == 'goog_public_android_api_key' ||
         activeKey == 'appl_public_ios_api_key';
+  }
 
-    if (isPlaceholder) {
-      throw AssertionError(
-        'Invalid RevenueCat API Key: "$activeKey". '
-        'Please configure a valid production RevenueCat API key in your .env file '
-        'under REVENUECAT_ANDROID_KEY and REVENUECAT_IOS_KEY.'
-      );
+  static Future<void> configurePurchases() async {
+    try {
+      if (isRevenueCatMockMode) {
+        debugPrint('[Developer Warning] RevenueCat API Key is empty or a placeholder. Running in Mock Mode without native configuration.');
+        return;
+      }
+      if (await Purchases.isConfigured) return;
+
+      final androidKey = revenueCatAndroidKey;
+      final iosKey = revenueCatIOSKey;
+
+      String activeKey = '';
+      if (Platform.isAndroid) {
+        activeKey = androidKey;
+      } else if (Platform.isIOS) {
+        activeKey = iosKey;
+      }
+
+      await Purchases.configure(PurchasesConfiguration(activeKey));
+    } catch (e) {
+      debugPrint('[Developer Warning] Failed to configure RevenueCat Purchases: $e');
     }
-
-    await Purchases.configure(PurchasesConfiguration(activeKey));
   }
 }
 

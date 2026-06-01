@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
+import 'central_config.dart';
 
 class UsageLimitService extends ChangeNotifier {
   static const String _remainingQueriesKey = 'medai_remaining_queries';
@@ -20,6 +21,7 @@ class UsageLimitService extends ChangeNotifier {
   }
 
   void _initRevenueCatListener() {
+    if (CentralConfig.isRevenueCatMockMode) return;
     try {
       Purchases.addCustomerInfoUpdateListener((customerInfo) async {
         final isPremiumActive = customerInfo.entitlements.active.isNotEmpty;
@@ -32,6 +34,7 @@ class UsageLimitService extends ChangeNotifier {
 
   /// Synchronizes subscription status dynamically with RevenueCat server.
   Future<void> syncSubscriptionStatus() async {
+    if (CentralConfig.isRevenueCatMockMode) return;
     try {
       if (await Purchases.isConfigured) {
         final customerInfo = await Purchases.getCustomerInfo();

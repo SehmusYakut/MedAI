@@ -1,11 +1,18 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/medicine_program.dart' show MedicineProgram, MedicineSource;
 import '../models/medicine.dart';
 import 'package:uuid/uuid.dart';
 
 class MedicineProgramViewModel extends ChangeNotifier {
+  final SharedPreferences? _prefs;
   final List<MedicineProgram> _programs = [];
-  final bool _isLoading = false;
+  bool _isLoading = false;
+
+  MedicineProgramViewModel({SharedPreferences? prefs}) : _prefs = prefs {
+    _loadProgramsFromStorage();
+  }
 
   List<MedicineProgram> get programs => List.unmodifiable(_programs);
   List<MedicineProgram> get activePrograms =>
@@ -90,6 +97,35 @@ class MedicineProgramViewModel extends ChangeNotifier {
     ),
   ];
 
+  static const String _programsKey = 'medai_medicine_programs';
+
+  void _loadProgramsFromStorage() {
+    if (_prefs == null) return;
+    _isLoading = true;
+    
+    final String? programsJson = _prefs!.getString(_programsKey);
+    if (programsJson != null) {
+      try {
+        final List<dynamic> decoded = jsonDecode(programsJson);
+        _programs.clear();
+        _programs.addAll(decoded.map((item) => MedicineProgram.fromJson(item)));
+      } catch (e) {
+        debugPrint('[MedicineProgramViewModel] Error decoding programs: $e');
+      }
+    }
+    _isLoading = false;
+  }
+
+  Future<void> _saveProgramsToStorage() async {
+    if (_prefs == null) return;
+    try {
+      final String programsJson = jsonEncode(_programs.map((p) => p.toJson()).toList());
+      await _prefs!.setString(_programsKey, programsJson);
+    } catch (e) {
+      debugPrint('[MedicineProgramViewModel] Error saving programs: $e');
+    }
+  }
+
   void createProgram({
     required String name,
     String? description,
@@ -106,6 +142,7 @@ class MedicineProgramViewModel extends ChangeNotifier {
     );
 
     _programs.add(program);
+    _saveProgramsToStorage();
     notifyListeners();
   }
 
@@ -113,12 +150,14 @@ class MedicineProgramViewModel extends ChangeNotifier {
     final index = _programs.indexWhere((p) => p.id == program.id);
     if (index != -1) {
       _programs[index] = program;
+      _saveProgramsToStorage();
       notifyListeners();
     }
   }
 
   void deleteProgram(String id) {
     _programs.removeWhere((program) => program.id == id);
+    _saveProgramsToStorage();
     notifyListeners();
   }
 
@@ -127,6 +166,7 @@ class MedicineProgramViewModel extends ChangeNotifier {
     if (index != -1) {
       final program = _programs[index];
       _programs[index] = program.copyWith(isActive: !program.isActive);
+      _saveProgramsToStorage();
       notifyListeners();
     }
   }
@@ -138,6 +178,7 @@ class MedicineProgramViewModel extends ChangeNotifier {
       final updatedMedicines = List<Medicine>.from(program.medicines)
         ..add(medicine);
       _programs[index] = program.copyWith(medicines: updatedMedicines);
+      _saveProgramsToStorage();
       notifyListeners();
     }
   }
@@ -149,6 +190,7 @@ class MedicineProgramViewModel extends ChangeNotifier {
       final updatedMedicines =
           program.medicines.where((m) => m.id != medicineId).toList();
       _programs[index] = program.copyWith(medicines: updatedMedicines);
+      _saveProgramsToStorage();
       notifyListeners();
     }
   }
@@ -164,6 +206,7 @@ class MedicineProgramViewModel extends ChangeNotifier {
         final updatedMedicines = List<Medicine>.from(program.medicines);
         updatedMedicines[medicineIndex] = medicine;
         _programs[programIndex] = program.copyWith(medicines: updatedMedicines);
+        _saveProgramsToStorage();
         notifyListeners();
       }
     }
@@ -174,6 +217,7 @@ class MedicineProgramViewModel extends ChangeNotifier {
     if (index != -1) {
       final program = _programs[index];
       _programs[index] = program.copyWith(days: days);
+      _saveProgramsToStorage();
       notifyListeners();
     }
   }
@@ -186,10 +230,8 @@ class MedicineProgramViewModel extends ChangeNotifier {
     if (index != -1) {
       final program = _programs[index];
       _programs[index] = program.copyWith(reminderTimes: reminderTimes);
+      _saveProgramsToStorage();
       notifyListeners();
     }
   }
-
-  // TODO: Add methods for persistence (e.g., save to local storage)
-  // TODO: Add methods for scheduling notifications
 }
