@@ -1,7 +1,8 @@
+import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:purchases_flutter/purchases_flutter.dart';
 import '../services/usage_limit_service.dart';
 
 class PremiumPaywallScreen extends StatefulWidget {
@@ -55,25 +56,49 @@ class _PremiumPaywallScreenState extends State<PremiumPaywallScreen> {
     },
   ];
 
-  Future<void> _startMockCheckout(BuildContext context, UsageLimitService limitService) async {
+  Future<void> _startCheckout(UsageLimitService limitService) async {
     setState(() {
       _isCheckingOut = true;
     });
 
-    // Simulate network delay for payment processing
-    await Future.delayed(const Duration(seconds: 2));
+    try {
+      // 1. Initialize SDK if not configured yet
+      if (!await Purchases.isConfigured) {
+        if (Platform.isAndroid) {
+          await Purchases.configure(PurchasesConfiguration("goog_public_android_api_key"));
+        } else if (Platform.isIOS) {
+          await Purchases.configure(PurchasesConfiguration("appl_public_ios_api_key"));
+        }
+      }
 
-    if (!mounted) return;
+      // 2. Fetch offerings
+      Offerings offerings = await Purchases.getOfferings();
+      Package? packageToPurchase;
 
-    setState(() {
-      _isCheckingOut = false;
-    });
+      if (offerings.current != null && offerings.current!.availablePackages.isNotEmpty) {
+        final packages = offerings.current!.availablePackages;
+        // _selectedPlanIndex matches Monthly (0) or Annual (1)
+        if (_selectedPlanIndex < packages.length) {
+          packageToPurchase = packages[_selectedPlanIndex];
+        } else {
+          packageToPurchase = packages.first;
+        }
+      }
 
-    // Save premium status
-    await limitService.setPremium(true);
+      if (packageToPurchase == null) {
+        throw Exception("No available subscription packages found.");
+      }
 
-    // Show beautiful success dialog
-    if (context.mounted) {
+      // 3. Purchase package using the recommended PurchaseParams
+      final purchaseParams = PurchaseParams.package(packageToPurchase);
+      await Purchases.purchase(purchaseParams);
+
+      // 4. Update usage limit service upon verified purchase
+      await limitService.setPremium(true);
+
+      if (!mounted) return;
+
+      // Show beautiful success dialog
       showDialog<void>(
         context: context,
         barrierDismissible: false,
@@ -112,7 +137,9 @@ class _PremiumPaywallScreenState extends State<PremiumPaywallScreen> {
                 child: FilledButton(
                   onPressed: () {
                     Navigator.pop(dialogCtx); // Close dialog
-                    Navigator.pop(context); // Pop paywall screen
+                    if (mounted) {
+                      Navigator.pop(context); // Pop paywall screen
+                    }
                   },
                   style: FilledButton.styleFrom(
                     backgroundColor: Colors.green,
@@ -126,6 +153,20 @@ class _PremiumPaywallScreenState extends State<PremiumPaywallScreen> {
           ),
         ),
       );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Subscription failed: ${e.toString()}'),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isCheckingOut = false;
+        });
+      }
     }
   }
 
@@ -426,7 +467,7 @@ class _PremiumPaywallScreenState extends State<PremiumPaywallScreen> {
                         child: FilledButton(
                           onPressed: _isCheckingOut
                               ? null
-                              : () => _startMockCheckout(context, limitService),
+                              : () => _startCheckout(limitService),
                           style: FilledButton.styleFrom(
                             backgroundColor: Colors.cyan,
                             foregroundColor: Colors.black,
@@ -468,99 +509,6 @@ class _PremiumPaywallScreenState extends State<PremiumPaywallScreen> {
                         color: isDark ? Colors.white54 : Colors.black54,
                       ),
                     ),
-                  ),
-                ),
-                const SizedBox(height: 32),
-
-                // Developer Tools Panel for testing
-                Theme(
-                  data: Theme.of(context).copyWith(
-                    dividerColor: Colors.transparent,
-                  ),
-                  child: ExpansionTile(
-                    title: const Row(
-                      children: [
-                        Icon(Icons.developer_mode, size: 18),
-                        SizedBox(width: 8),
-                        Text(
-                          'Developer Options (For Testing Only)',
-                          style: TextStyle(fontSize: 12),
-                        ),
-                      ],
-                    ),
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8.0),
-                        child: Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: [
-                            ActionChip(
-                              avatar: const Icon(Icons.flash_on, size: 14),
-                              label: const Text('Exhaust 5 Queries'),
-                              onPressed: () async {
-                                await limitService.testForceExhaustQueries();
-                                if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Free credits forced to 0!')),
-                                  );
-                                }
-                              },
-                            ),
-                            ActionChip(
-                              avatar: const Icon(Icons.refresh, size: 14),
-                              label: Text(limitService.isPremium ? 'Reset 50 Queries' : 'Reset 5 Queries'),
-                              onPressed: () async {
-                                final prefs = await SharedPreferences.getInstance();
-                                final maxQueries = limitService.isPremium ? 50 : 5;
-                                await prefs.setInt('medai_remaining_queries', maxQueries);
-                                await limitService.setPremium(limitService.isPremium);
-                                if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text('Credits reset to $maxQueries!')),
-                                  );
-                                }
-                              },
-                            ),
-                            ActionChip(
-                              avatar: const Icon(Icons.history, size: 14),
-                              label: const Text('Simulate >24h elapsed'),
-                              onPressed: () async {
-                                await limitService.testForcePass24Hours();
-                                if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Last reset timestamp set to 25 hours ago!')),
-                                  );
-                                }
-                              },
-                            ),
-                            ActionChip(
-                              avatar: Icon(
-                                limitService.isPremium ? Icons.star_border : Icons.star,
-                                size: 14,
-                              ),
-                              label: Text(
-                                limitService.isPremium ? 'Remove Premium' : 'Enable Premium',
-                              ),
-                              onPressed: () async {
-                                await limitService.setPremium(!limitService.isPremium);
-                                if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        limitService.isPremium
-                                            ? 'Premium mode activated!'
-                                            : 'Premium mode deactivated!',
-                                      ),
-                                    ),
-                                  );
-                                }
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
                   ),
                 ),
                 const SizedBox(height: 24),

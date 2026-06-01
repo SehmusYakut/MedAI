@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:purchases_flutter/purchases_flutter.dart';
 
 class UsageLimitService extends ChangeNotifier {
   static const String _remainingQueriesKey = 'medai_remaining_queries';
@@ -13,6 +14,18 @@ class UsageLimitService extends ChangeNotifier {
 
   UsageLimitService(this._prefs) {
     _loadFromPrefs();
+    _initRevenueCatListener();
+  }
+
+  void _initRevenueCatListener() {
+    try {
+      Purchases.addCustomerInfoUpdateListener((customerInfo) async {
+        final isPremiumActive = customerInfo.entitlements.active.isNotEmpty;
+        await setPremium(isPremiumActive);
+      });
+    } catch (e) {
+      debugPrint('[Developer Warning] Failed to register RevenueCat listener: $e');
+    }
   }
 
   void _loadFromPrefs() {
@@ -73,17 +86,4 @@ class UsageLimitService extends ChangeNotifier {
     }
   }
 
-  /// Helper method to reset remaining queries to 0 for testing purposes
-  Future<void> testForceExhaustQueries() async {
-    _remainingQueries = 0;
-    await _prefs.setInt(_remainingQueriesKey, 0);
-    notifyListeners();
-  }
-
-  /// Helper method to reset last reset time to 25 hours ago for testing purposes
-  Future<void> testForcePass24Hours() async {
-    _lastResetTime = DateTime.now().subtract(const Duration(hours: 25));
-    await _prefs.setString(_lastResetTimeKey, _lastResetTime.toIso8601String());
-    notifyListeners();
-  }
 }

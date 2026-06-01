@@ -28,27 +28,46 @@ class _AskAIScreenState extends State<AskAIScreen> {
   }
 
   Future<void> _loadServices() async {
-    final services = await AIServiceManager().getServices();
+    try {
+      final services = await AIServiceManager().getServices();
 
-    if (mounted) {
-      setState(() {
-        _availableServices = services;
-        if (services.isNotEmpty) {
-          _selectedService = services.first.name;
-        } else {
+      if (mounted) {
+        setState(() {
+          _availableServices = services;
+          if (services.isNotEmpty) {
+            _selectedService = services.first.name;
+          } else {
+            _selectedService = null;
+          }
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _availableServices = [];
           _selectedService = null;
-        }
-      });
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Configuration Error: ${e.toString()}'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
     }
   }
 
   Future<void> _askAI() async {
     if (_formKey.currentState!.validate()) {
       if (_selectedService == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please select an AI service')),
-        );
-        return;
+        if (_availableServices.isNotEmpty) {
+          _selectedService = _availableServices.first.name;
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('No AI service available')),
+          );
+          return;
+        }
       }
 
       final limitService = Provider.of<UsageLimitService>(context, listen: false);
@@ -67,6 +86,7 @@ class _AskAIScreenState extends State<AskAIScreen> {
       try {
         final service = _availableServices.firstWhere(
           (s) => s.name == _selectedService,
+          orElse: () => _availableServices.first,
         );
 
         final response = await service.generateResponse(_promptController.text);
@@ -83,7 +103,7 @@ class _AskAIScreenState extends State<AskAIScreen> {
       } catch (e) {
         setState(() {
           _responses.add(AIResponse.error(
-            _selectedService!,
+            _selectedService ?? 'AI',
             'Error: ${e.toString()}',
           ));
         });
@@ -106,98 +126,49 @@ class _AskAIScreenState extends State<AskAIScreen> {
     }
   }
 
-  Widget _buildUsageLimitBadge(BuildContext context, UsageLimitService limitService) {
-    final cs = Theme.of(context).colorScheme;
-    final isPremium = limitService.isPremium;
-    final remaining = limitService.getRemainingRights();
 
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: isPremium 
-            ? const Color(0xFFFFF9C4).withValues(alpha: 0.12)
-            : (remaining == 0 ? cs.errorContainer.withValues(alpha: 0.15) : cs.surfaceContainerHighest.withValues(alpha: 0.4)),
-        border: isPremium 
-            ? const Border(
-                bottom: BorderSide(color: Colors.amber, width: 1.5),
-              )
-            : null,
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        children: [
-          Icon(
-            isPremium ? Icons.stars_rounded : Icons.medical_services_outlined,
-            color: isPremium ? Colors.amber : (remaining == 0 ? cs.error : cs.primary),
-            size: 22,
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              isPremium 
-                  ? '✨ PRO Tier: $remaining/50 Daily Expert Cases Available' 
-                  : '🩺 $remaining/5 Daily Clinical Cases Available',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 13,
-                color: isPremium 
-                    ? (Theme.of(context).brightness == Brightness.dark ? Colors.amber.shade200 : Colors.amber.shade800)
-                    : (remaining == 0 ? cs.error : cs.onSurfaceVariant),
-                letterSpacing: 0.2,
-              ),
-            ),
-          ),
-          if (!isPremium)
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: cs.primary,
-                foregroundColor: cs.onPrimary,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                minimumSize: Size.zero,
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                elevation: 2,
-              ),
-              onPressed: () => Navigator.pushNamed(context, '/premium-paywall'),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.bolt, size: 14),
-                  SizedBox(width: 4),
-                  Text(
-                    'Upgrade',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-            ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildQuickTemplates() {
     final cs = Theme.of(context).colorScheme;
-    final templates = [
-      {
-        'label': '🔬 Differential Diagnosis',
-        'prefix': 'Analyze the differential diagnosis for the following clinical presentation: ',
-      },
-      {
-        'label': '💊 Pharmacology & Side Effects',
-        'prefix': 'Break down the mechanism of action, contraindications, and major side effects for: ',
-      },
-      {
-        'label': '📊 Lab Result Interpreter',
-        'prefix': 'Interpret these laboratory findings and suggest the next diagnostic steps: ',
-      },
-      {
-        'label': '📚 TUS/Exam High-Yield Logic',
-        'prefix': 'Break down the high-yield core medical principles behind this exam scenario: ',
-      },
-    ];
+    final isTurkish = Localizations.localeOf(context).languageCode == 'tr';
+
+    final templates = isTurkish
+        ? [
+            {
+              'label': '🔬 Ayırıcı Tanı',
+              'prefix': 'Aşağıdaki klinik tablo için (birincil, ikincil ve elenmesi gereken durumları içerecek şekilde) ayırıcı tanı analizi yap: ',
+            },
+            {
+              'label': '💊 Farmakoloji ve Etkileşim',
+              'prefix': 'Şu ilaç/etken madde için etki mekanizmasını, klinik endikasyonlarını, önemli kontrendikasyonlarını ve kritik ilaç etkileşimlerini açıkla: ',
+            },
+            {
+              'label': '📊 Laboratuvar ve Görüntüleme',
+              'prefix': 'Aşağıdaki laboratuvar değerlerini veya görüntüleme bulgularını yorumla, klinik korelasyon kur ve atılması gereken bir sonraki en iyi tanısal adımı öner: ',
+            },
+            {
+              'label': '📚 TUS ve Komite Soru Mantığı',
+              'prefix': 'Bu klinik vakanın arkasındaki temel TUS/Komite mekanizmalarını ve patofizyolojik mantığı yüksek verimli (high-yield) bir şekilde analiz et: ',
+            },
+          ]
+        : [
+            {
+              'label': '🔬 Differential Diagnosis',
+              'prefix': 'Analyze the differential diagnosis (including primary, secondary, and rule-out conditions) for the following clinical presentation: ',
+            },
+            {
+              'label': '💊 Pharmacology & Interactions',
+              'prefix': 'Break down the mechanism of action, high-yield clinical indications, major contraindications, and critical drug interactions for: ',
+            },
+            {
+              'label': '📊 Lab & Imaging Interpreter',
+              'prefix': 'Interpret the following laboratory values or imaging findings, correlate them clinically, and suggest the next best diagnostic steps: ',
+            },
+            {
+              'label': '📚 TUS & Board Exam Logic',
+              'prefix': 'Extract and analyze the core, high-yield medical board principles and pathophysiological rationales behind this clinical vignette: ',
+            },
+          ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -205,7 +176,7 @@ class _AskAIScreenState extends State<AskAIScreen> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
           child: Text(
-            'Quick Clinical Templates',
+            isTurkish ? 'Hızlı Klinik Şablonlar' : 'Quick Clinical Templates',
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.bold,
@@ -256,44 +227,46 @@ class _AskAIScreenState extends State<AskAIScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Ask AI'),
+        title: Column(
+          children: [
+            const Text(
+              'MedAI',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            ),
+            Text(
+              limitService.isPremium 
+                  ? '✨ PRO Tier: ${limitService.getRemainingRights()}/50 Daily Expert Cases' 
+                  : '🩺 ${limitService.getRemainingRights()}/5 Daily Clinical Cases Available',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: limitService.isPremium 
+                    ? (Theme.of(context).brightness == Brightness.dark ? Colors.amber.shade200 : Colors.amber.shade800)
+                    : (limitService.getRemainingRights() == 0 ? Theme.of(context).colorScheme.error : Theme.of(context).colorScheme.onSurfaceVariant),
+              ),
+            ),
+          ],
+        ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _loadServices,
-            tooltip: 'Refresh AI Services',
-          ),
+          if (!limitService.isPremium)
+            Padding(
+              padding: const EdgeInsets.only(right: 8.0),
+              child: TextButton.icon(
+                icon: const Icon(Icons.bolt, size: 16),
+                label: const Text('PRO', style: TextStyle(fontWeight: FontWeight.bold)),
+                onPressed: () => Navigator.pushNamed(context, '/premium-paywall'),
+              ),
+            ),
         ],
       ),
       body: Column(
         children: [
-          _buildUsageLimitBadge(context, limitService),
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Form(
               key: _formKey,
               child: Column(
                 children: [
-                  if (_availableServices.isNotEmpty) ...[
-                    DropdownButtonFormField<String>(
-                      initialValue: _selectedService,
-                      decoration: const InputDecoration(
-                        labelText: 'Select AI Service',
-                      ),
-                      items: _availableServices.map((service) {
-                        return DropdownMenuItem<String>(
-                          value: service.name,
-                          child: Text(service.name),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedService = value;
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                  ],
                   _buildQuickTemplates(),
                   TextFormField(
                     controller: _promptController,

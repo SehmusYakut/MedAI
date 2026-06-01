@@ -1,518 +1,368 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../main.dart';
-import '../l10n/app_localizations.dart';
-import '../viewmodels/medicine_program_view_model.dart';
-import '../models/medicine_program.dart';
-import 'widgets/language_selector.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'ocr_screen.dart';
-import 'medicine_program_screen.dart';
-import 'ask_ai_screen.dart';
+import '../l10n/app_localizations.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
+  bool _isLoadingSession = true;
+  String _academicTrack = '';
+  late AnimationController _fadeController;
+
+  @override
+  void initState() {
+    super.initState();
+    _fadeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    )..repeat(reverse: true);
+    _loadSessionData();
+  }
+
+  Future<void> _loadSessionData() async {
+    // 500ms lightweight simulated check to display the skeleton loader
+    await Future.delayed(const Duration(milliseconds: 500));
+    final prefs = await SharedPreferences.getInstance();
+    if (mounted) {
+      setState(() {
+        _academicTrack = prefs.getString('academic_track') ?? '';
+        _isLoadingSession = false;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _fadeController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(
-        leadingWidth: 60,
-        leading: const _LogoBadge(),
-        title: Text(l10n.appTitle),
-        actions: const [
-          LanguageSelector(),
-          _ThemeToggleButton(),
-          _PremiumButton(),
-        ],
-      ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-        children: [
-          _TodayScheduleSection(l10n: l10n),
-          const SizedBox(height: 20),
-          _SectionHeader(label: l10n.tools),
-          const SizedBox(height: 12),
-          _PrimaryToolsRow(l10n: l10n),
-          const SizedBox(height: 12),
-          _MedicineProgramsCard(l10n: l10n),
-        ],
-      ),
-    );
-  }
-}
-
-// ── Logo Badge (Polished circular design with custom medical logo) ──────────────
-
-class _LogoBadge extends StatelessWidget {
-  const _LogoBadge();
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    final brightness = Theme.of(context).brightness;
-    final isDark = brightness == Brightness.dark;
-
-    return RepaintBoundary(
-      child: Center(
-        child: Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: isDark
-                  ? [
-                      cs.primary.withValues(alpha: 0.9),
-                      cs.primary.withValues(alpha: 0.7),
-                    ]
-                  : [cs.primary, cs.primary.withValues(alpha: 0.8)],
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: cs.primary.withValues(alpha: isDark ? 0.4 : 0.2),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-                spreadRadius: 1,
-              ),
-            ],
-          ),
-          child: Container(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: cs.onPrimary.withValues(alpha: 0.2),
-                width: 1.5,
-              ),
-            ),
-            child: _MedicalLogo(color: cs.onPrimary),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ── Custom Medical Logo (AI + Medical Cross) ──────────────────────────────────
-
-class _MedicalLogo extends StatelessWidget {
-  final Color color;
-  const _MedicalLogo({required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return CustomPaint(
-      painter: _MedicalLogoPainter(color: color),
-      size: const Size.square(48),
-    );
-  }
-}
-
-class _MedicalLogoPainter extends CustomPainter {
-  final Color color;
-  _MedicalLogoPainter({required this.color});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.fill;
-
-    final strokePaint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5;
-
-    final centerX = size.width / 2;
-    final centerY = size.height / 2;
-
-    // Draw medical cross (plus sign) with rounded corners
-    const crossWidth = 6.0;
-    const crossLength = 16.0;
-
-    // Vertical bar of cross
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromCenter(
-          center: Offset(centerX, centerY),
-          width: crossWidth,
-          height: crossLength,
-        ),
-        const Radius.circular(2),
-      ),
-      paint,
-    );
-
-    // Horizontal bar of cross
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromCenter(
-          center: Offset(centerX, centerY),
-          width: crossLength,
-          height: crossWidth,
-        ),
-        const Radius.circular(2),
-      ),
-      paint,
-    );
-
-    // Draw a subtle circular background for the cross
-    canvas.drawCircle(
-      Offset(centerX, centerY),
-      10.5,
-      strokePaint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(_MedicalLogoPainter oldDelegate) =>
-      oldDelegate.color != color;
-}
-
-// ── Theme Toggle Button ───────────────────────────────────────────────────────
-
-class _ThemeToggleButton extends StatelessWidget {
-  const _ThemeToggleButton();
-
-  @override
-  Widget build(BuildContext context) {
-    return IconButton(
-      icon: Icon(
-        Theme.of(context).brightness == Brightness.dark
-            ? Icons.light_mode
-            : Icons.dark_mode,
-      ),
-      onPressed: () => MyApp.toggleTheme(context),
-      tooltip: 'Toggle Theme',
-    );
-  }
-}
-
-// ── Premium Button ────────────────────────────────────────────────────────────
-
-class _PremiumButton extends StatelessWidget {
-  const _PremiumButton();
-
-  @override
-  Widget build(BuildContext context) {
-    return IconButton(
-      icon: const Icon(Icons.star_rounded, color: Colors.amber),
-      onPressed: () => Navigator.pushNamed(context, '/premium-paywall'),
-      tooltip: 'MedAI Premium',
-    );
-  }
-}
-
-// ── Today's Schedule ──────────────────────────────────────────────────────────
-
-class _TodayScheduleSection extends StatelessWidget {
-  final AppLocalizations l10n;
-  const _TodayScheduleSection({required this.l10n});
-
-  static const _dayNames = [
-    'Monday',
-    'Tuesday',
-    'Wednesday',
-    'Thursday',
-    'Friday',
-    'Saturday',
-    'Sunday',
-  ];
-
-  String get _todayName => _dayNames[DateTime.now().weekday - 1];
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    final programs = context
-        .watch<MedicineProgramViewModel>()
-        .activePrograms
-        .where((p) => p.days.contains(_todayName))
-        .toList();
-
-    return RepaintBoundary(
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [cs.primaryContainer, cs.secondaryContainer],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Row(
-              children: [
-                Icon(Icons.today_outlined,
-                    color: cs.onPrimaryContainer, size: 20),
-                const SizedBox(width: 8),
-                Text(
-                  l10n.todaySchedule,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: cs.onPrimaryContainer),
-                ),
-              ],
+            const _GeometricVectorLogo(size: 28),
+            const SizedBox(width: 8),
+            Text(
+              l10n.appTitle,
+              style: const TextStyle(fontWeight: FontWeight.bold, letterSpacing: 0.5),
             ),
-            const SizedBox(height: 12),
-            if (programs.isEmpty)
-              Text(
-                l10n.noProgramsToday,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: cs.onPrimaryContainer.withValues(alpha: 0.7)),
-              )
-            else
-              ...programs.map(
-                (p) => _ProgramRow(program: p, cs: cs),
-              ),
           ],
         ),
+        centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.account_circle_outlined, size: 28),
+            onPressed: () => Navigator.pushNamed(context, '/profile'),
+            tooltip: 'Profile Settings',
+          ),
+        ],
       ),
-    );
-  }
-}
-
-class _ProgramRow extends StatelessWidget {
-  final MedicineProgram program;
-  final ColorScheme cs;
-
-  const _ProgramRow({required this.program, required this.cs});
-
-  String get _nextReminder {
-    if (program.reminderTimes.isEmpty) return '';
-    final now = TimeOfDay.now();
-    final nowMins = now.hour * 60 + now.minute;
-    final sorted = [...program.reminderTimes]
-      ..sort((a, b) => (a.hour * 60 + a.minute) - (b.hour * 60 + b.minute));
-    final next = sorted.firstWhere(
-      (t) => t.hour * 60 + t.minute > nowMins,
-      orElse: () => sorted.first,
-    );
-    return '${next.hour.toString().padLeft(2, '0')}:${next.minute.toString().padLeft(2, '0')}';
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        children: [
-          Container(
-            width: 8,
-            height: 8,
-            decoration: BoxDecoration(
-              color: cs.primary,
-              shape: BoxShape.circle,
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              program.name,
-              style: TextStyle(
-                  fontWeight: FontWeight.w600, color: cs.onPrimaryContainer),
-            ),
-          ),
-          if (_nextReminder.isNotEmpty)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: cs.primary.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
+      body: _isLoadingSession
+          ? _buildSkeletonLoader()
+          : FadeTransition(
+              opacity: const AlwaysStoppedAnimation(1.0),
+              child: ListView(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                 children: [
-                  Icon(Icons.alarm_outlined, size: 12, color: cs.primary),
-                  const SizedBox(width: 4),
-                  Text(_nextReminder,
-                      style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: cs.primary)),
+                  // Welcome Header
+                  _buildWelcomeHeader(isDark),
+                  const SizedBox(height: 24),
+
+                  // Dashboard Cards Section
+                  _buildDashboardSection(context, l10n),
                 ],
               ),
             ),
+    );
+  }
+
+  Widget _buildWelcomeHeader(bool isDark) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        gradient: LinearGradient(
+          colors: isDark
+              ? [const Color(0xFF1E293B), const Color(0xFF0F172A)]
+              : [const Color(0xFFE0F2FE), Colors.white],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        border: Border.all(
+          color: isDark ? Colors.white10 : const Color(0xFFBAE6FD),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Welcome back, Doctor',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white : const Color(0xFF0369A1),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            _academicTrack.isNotEmpty
+                ? 'Current Track: $_academicTrack'
+                : 'Select your curriculum track in settings',
+            style: TextStyle(
+              fontSize: 14,
+              color: isDark ? Colors.white70 : const Color(0xFF0284C7),
+              fontWeight: _academicTrack.isNotEmpty ? FontWeight.w600 : FontWeight.normal,
+            ),
+          ),
         ],
       ),
     );
   }
-}
 
-// ── Section header ────────────────────────────────────────────────────────────
+  Widget _buildDashboardSection(BuildContext context, AppLocalizations l10n) {
+    final cs = Theme.of(context).colorScheme;
 
-class _SectionHeader extends StatelessWidget {
-  final String label;
-  const _SectionHeader({required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      label,
-      style: Theme.of(context)
-          .textTheme
-          .labelLarge
-          ?.copyWith(color: Theme.of(context).colorScheme.primary),
-    );
-  }
-}
-
-// ── Primary tool cards (OCR + Ask AI) ────────────────────────────────────────
-
-class _PrimaryToolsRow extends StatelessWidget {
-  final AppLocalizations l10n;
-  const _PrimaryToolsRow({required this.l10n});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: _ToolCard(
-            icon: Icons.document_scanner,
-            label: l10n.ocrScan,
-            description: l10n.scanMedicalQuestion,
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const OCRScreen()),
-            ),
+        const Text(
+          'Clinical Command Center',
+          style: TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 0.5,
           ),
         ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _ToolCard(
-            icon: Icons.psychology_outlined,
-            label: l10n.askAI,
-            description: l10n.noAiConfigured.split('.').first,
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const AskAIScreen()),
-            ),
+        const SizedBox(height: 16),
+        _buildNavCard(
+          context: context,
+          icon: Icons.chat_bubble_outline_rounded,
+          title: '💬 AskAI Clinical Chat',
+          description: 'Consult complex symptoms, drug structures, and board queries directly with gemini-2.5-flash-lite.',
+          color: cs.primary,
+          onTap: () => Navigator.pushNamed(context, '/ask-ai'),
+        ),
+        const SizedBox(height: 16),
+        _buildNavCard(
+          context: context,
+          icon: Icons.document_scanner_outlined,
+          title: '📸 OCR Case Scanner',
+          description: 'Instantly decode patient cases, prescription notes, and exam diagrams with integrated ML recognition.',
+          color: cs.secondary,
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const OCRScreen()),
           ),
+        ),
+        const SizedBox(height: 16),
+        _buildNavCard(
+          context: context,
+          icon: Icons.school_outlined,
+          title: '👤 Student Profile & Curriculums',
+          description: 'Sync your university domain, choose board study tracks (TUS, USMLE), and toggle interface preferences.',
+          color: Colors.teal,
+          onTap: () => Navigator.pushNamed(context, '/profile'),
         ),
       ],
     );
   }
-}
 
-class _ToolCard extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String description;
-  final VoidCallback onTap;
+  Widget _buildNavCard({
+    required BuildContext context,
+    required IconData icon,
+    required String title,
+    required String description,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-  const _ToolCard({
-    required this.icon,
-    required this.label,
-    required this.description,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
     return Card(
-      elevation: 0,
-      color: cs.surfaceContainerHighest,
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(
+          color: isDark ? Colors.white10 : Colors.grey.shade200,
+          width: 1,
+        ),
+      ),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         child: Padding(
           padding: const EdgeInsets.all(20),
-          child: Column(
+          child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: cs.primaryContainer,
-                  borderRadius: BorderRadius.circular(12),
+                  color: color.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(16),
                 ),
-                child: Icon(icon, color: cs.onPrimaryContainer, size: 24),
-              ),
-              const SizedBox(height: 12),
-              Text(label,
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleSmall
-                      ?.copyWith(fontWeight: FontWeight.bold)),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ── Medicine Programs card (secondary, full-width) ────────────────────────────
-
-class _MedicineProgramsCard extends StatelessWidget {
-  final AppLocalizations l10n;
-  const _MedicineProgramsCard({required this.l10n});
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    final totalActive =
-        context.watch<MedicineProgramViewModel>().activePrograms.length;
-
-    return Card(
-      elevation: 0,
-      color: cs.surface,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: cs.outlineVariant),
-      ),
-      child: InkWell(
-        onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const MedicineProgramScreen()),
-        ),
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: cs.tertiaryContainer,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(Icons.medication_outlined,
-                    color: cs.onTertiaryContainer, size: 24),
+                child: Icon(icon, color: color, size: 28),
               ),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(l10n.medicinePrograms,
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleSmall
-                            ?.copyWith(fontWeight: FontWeight.bold)),
-                    if (totalActive > 0)
-                      Text(
-                        '$totalActive ${l10n.activeToday}',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: cs.onSurface.withValues(alpha: 0.6)),
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
                       ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      description,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isDark ? Colors.white70 : Colors.black54,
+                        height: 1.4,
+                      ),
+                    ),
                   ],
                 ),
               ),
-              Icon(Icons.chevron_right,
-                  color: cs.onSurface.withValues(alpha: 0.4)),
+              const SizedBox(width: 8),
+              Icon(
+                Icons.chevron_right_rounded,
+                color: isDark ? Colors.white30 : Colors.black38,
+              ),
             ],
           ),
         ),
       ),
     );
   }
+
+  Widget _buildSkeletonLoader() {
+    return AnimatedBuilder(
+      animation: _fadeController,
+      builder: (context, child) {
+        final opacity = 0.3 + (_fadeController.value * 0.4);
+        return Opacity(
+          opacity: opacity,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header skeleton
+                Container(
+                  height: 110,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade400.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                ),
+                const SizedBox(height: 32),
+                // Title skeleton
+                Container(
+                  height: 16,
+                  width: 180,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade400.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                // Card skeletons
+                ...List.generate(3, (index) => Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: Container(
+                    height: 100,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade400.withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                )),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _GeometricVectorLogo extends StatelessWidget {
+  final double size;
+  const _GeometricVectorLogo({this.size = 64});
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return CustomPaint(
+      size: Size(size, size),
+      painter: _GeometricLogoPainter(
+        color1: cs.primary,
+        color2: cs.secondary,
+      ),
+    );
+  }
+}
+
+class _GeometricLogoPainter extends CustomPainter {
+  final Color color1;
+  final Color color2;
+
+  _GeometricLogoPainter({required this.color1, required this.color2});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint1 = Paint()
+      ..color = color1
+      ..style = PaintingStyle.fill;
+    
+    final paint2 = Paint()
+      ..color = color2.withValues(alpha: 0.85)
+      ..style = PaintingStyle.fill;
+
+    final path1 = Path();
+    path1.moveTo(size.width * 0.5, 0);
+    path1.lineTo(size.width, size.height * 0.25);
+    path1.lineTo(size.width, size.height * 0.75);
+    path1.lineTo(size.width * 0.5, size.height);
+    path1.close();
+
+    final path2 = Path();
+    path2.moveTo(size.width * 0.5, 0);
+    path2.lineTo(0, size.height * 0.25);
+    path2.lineTo(0, size.height * 0.75);
+    path2.lineTo(size.width * 0.5, size.height);
+    path2.close();
+
+    canvas.drawPath(path1, paint1);
+    canvas.drawPath(path2, paint2);
+
+    final corePaint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = size.width * 0.08;
+
+    canvas.drawCircle(Offset(size.width * 0.5, size.height * 0.5), size.width * 0.15, corePaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

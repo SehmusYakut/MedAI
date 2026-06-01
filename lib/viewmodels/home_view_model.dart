@@ -98,6 +98,9 @@ class HomeViewModel extends ChangeNotifier {
         }
         notifyListeners();
       }
+    } catch (e) {
+      _errorMessage = e.toString();
+      _setStatus(ProcessingStatus.error);
     } finally {
       _setStatus(ProcessingStatus.idle);
     }

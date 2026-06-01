@@ -1,21 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:provider/provider.dart';
-
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:medway/main.dart';
-import 'package:medway/viewmodels/medicine_program_view_model.dart';
-import 'package:medway/viewmodels/ocr_view_model.dart';
+import 'package:medway/services/theme_and_locale_service.dart';
 
 void main() {
   testWidgets('App initializes correctly', (WidgetTester tester) async {
+    // Mock initial SharedPreferences values
+    SharedPreferences.setMockInitialValues({});
+
+    final prefs = await SharedPreferences.getInstance();
+    final settingsService = ThemeAndLocaleService(prefs);
+
     // Build our app and trigger a frame.
     await tester.pumpWidget(
-      MultiProvider(
-        providers: [
-          ChangeNotifierProvider(create: (_) => MedicineProgramViewModel()),
-          ChangeNotifierProvider(create: (_) => OCRViewModel()),
-        ],
-        child: const MyApp(),
+      MyApp(
+        prefs: prefs,
+        settingsService: settingsService,
       ),
     );
 

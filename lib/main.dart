@@ -1,17 +1,21 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:purchases_flutter/purchases_flutter.dart';
 import 'views/home_screen.dart';
 import 'views/entrance_screen.dart';
 import 'views/premium_paywall_screen.dart';
 import 'views/ask_ai_screen.dart';
+import 'views/profile_screen.dart';
 import 'viewmodels/home_view_model.dart';
 import 'viewmodels/medicine_program_view_model.dart';
 import 'viewmodels/ocr_view_model.dart';
 import 'services/usage_limit_service.dart';
+import 'services/theme_and_locale_service.dart';
 import 'l10n/app_localizations.dart';
 
 void main() async {
@@ -25,109 +29,90 @@ void main() async {
     debugPrint('[Developer Warning] Failed to load .env configuration: $e');
   }
 
+  // Load SharedPreferences and Settings Service before runApp
+  final prefs = await SharedPreferences.getInstance();
+  final settingsService = ThemeAndLocaleService(prefs);
+
+  // Initialize RevenueCat safely
+  try {
+    if (Platform.isAndroid) {
+      await Purchases.configure(PurchasesConfiguration("goog_public_android_api_key"));
+    } else if (Platform.isIOS) {
+      await Purchases.configure(PurchasesConfiguration("appl_public_ios_api_key"));
+    }
+  } catch (e) {
+    debugPrint('[Developer Warning] Failed to initialize RevenueCat: $e');
+  }
+
   // Set preferred orientations
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
 
-  runApp(const MyApp());
+  runApp(MyApp(
+    prefs: prefs,
+    settingsService: settingsService,
+  ));
 }
 
-class MyApp extends StatefulWidget {
-  final SharedPreferences? prefs;
-  const MyApp({super.key, this.prefs});
+class MyApp extends StatelessWidget {
+  final SharedPreferences prefs;
+  final ThemeAndLocaleService settingsService;
 
-  @override
-  State<MyApp> createState() => _MyAppState();
+  const MyApp({
+    super.key,
+    required this.prefs,
+    required this.settingsService,
+  });
 
   static void setLocale(BuildContext context, Locale newLocale) {
-    _MyAppState? state = context.findAncestorStateOfType<_MyAppState>();
-    state?.setLocale(newLocale);
+    Provider.of<ThemeAndLocaleService>(context, listen: false).setLocale(newLocale);
   }
 
   static void toggleTheme(BuildContext context) {
-    _MyAppState? state = context.findAncestorStateOfType<_MyAppState>();
-    state?.toggleTheme();
-  }
-}
-
-class _MyAppState extends State<MyApp> {
-  Locale _locale = const Locale('en');
-  bool _isDarkTheme = false;
-  SharedPreferences? _prefs;
-  bool _loading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _initPrefs();
-  }
-
-  Future<void> _initPrefs() async {
-    _prefs = widget.prefs ?? await SharedPreferences.getInstance();
-    setState(() {
-      _loading = false;
-    });
-  }
-
-  void setLocale(Locale locale) {
-    setState(() {
-      _locale = locale;
-    });
-  }
-
-  void toggleTheme() {
-    setState(() {
-      _isDarkTheme = !_isDarkTheme;
-    });
+    Provider.of<ThemeAndLocaleService>(context, listen: false).toggleTheme();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_loading) {
-      return MaterialApp(
-        debugShowCheckedModeBanner: false,
-        themeMode: _isDarkTheme ? ThemeMode.dark : ThemeMode.light,
-        home: const Scaffold(
-          body: Center(
-            child: CircularProgressIndicator(),
-          ),
-        ),
-      );
-    }
-
     return MultiProvider(
       providers: [
+        ChangeNotifierProvider.value(value: settingsService),
         ChangeNotifierProvider(create: (_) => HomeViewModel()),
         ChangeNotifierProvider(create: (_) => MedicineProgramViewModel()),
         ChangeNotifierProvider(create: (_) => OCRViewModel()),
-        ChangeNotifierProvider(create: (_) => UsageLimitService(_prefs!)),
+        ChangeNotifierProvider(create: (_) => UsageLimitService(prefs)),
       ],
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        title: 'MedAI',
-        locale: _locale,
-        localizationsDelegates: const [
-          AppLocalizations.delegate,
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: const [
-          Locale('en', ''),
-          Locale('tr', ''),
-        ],
-        theme: _buildLightTheme(),
-        darkTheme: _buildDarkTheme(),
-        themeMode: _isDarkTheme ? ThemeMode.dark : ThemeMode.light,
-        routes: {
-          '/': (context) => const EntranceScreen(),
-          '/home': (context) => const HomeScreen(),
-          '/premium-paywall': (context) => const PremiumPaywallScreen(),
-          '/ask-ai': (context) => const AskAIScreen(),
+      child: Consumer<ThemeAndLocaleService>(
+        builder: (context, settings, _) {
+          return MaterialApp(
+            debugShowCheckedModeBanner: false,
+            title: 'MedAI',
+            locale: settings.locale,
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: const [
+              Locale('en', ''),
+              Locale('tr', ''),
+            ],
+            theme: _buildLightTheme(),
+            darkTheme: _buildDarkTheme(),
+            themeMode: settings.themeMode,
+            routes: {
+              '/': (context) => const EntranceScreen(),
+              '/home': (context) => const HomeScreen(),
+              '/premium-paywall': (context) => const PremiumPaywallScreen(),
+              '/ask-ai': (context) => const AskAIScreen(),
+              '/profile': (context) => const ProfileScreen(),
+            },
+            initialRoute: '/',
+          );
         },
-        initialRoute: '/',
       ),
     );
   }

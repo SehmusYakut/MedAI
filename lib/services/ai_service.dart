@@ -88,8 +88,15 @@ class GeminiService implements AIService {
   Future<String> generateResponse(String prompt) async {
     try {
       final model = GenerativeModel(
-        model: 'gemini-2.5-pro',
+        model: 'gemini-2.5-flash-lite',
         apiKey: apiKey,
+        systemInstruction: Content.system('''
+You are MedAI, an expert clinical assistant for medical students. 
+Guidelines:
+1. Provide accurate, high-yield, evidence-based medical insights.
+2. Be concise. Avoid conversational filler or redundant explanations to save tokens.
+3. CRITICAL: Identify the language of the user's prompt (e.g., Turkish or English) and reply exclusively in that exact language. Do not mix languages.
+'''.trim()),
       );
 
       final content = [Content.text(prompt)];
@@ -259,29 +266,6 @@ class OpenRouterService implements AIService {
   }
 }
 
-class MockAIService implements AIService {
-  @override
-  String get name => 'MockAI (Demo)';
-
-  @override
-  Future<String> generateResponse(String prompt) async {
-    await Future.delayed(const Duration(seconds: 1));
-    return '''
-## Answer
-This is a mock clinical insight response to demonstrate the app logic without an active API key.
-
-## Explanation
-To run this with real AI models, compile the app with:
-`flutter run --dart-define=GEMINI_API_KEY=your_key`
-
-## Key Points
-- Free queries limit is active: 5 queries per day.
-- Daily Access counter will decrement.
-- Once it hits 0, the Premium Paywall will be triggered!
-''';
-  }
-}
-
 class AIServiceManager {
   static final AIServiceManager _instance = AIServiceManager._internal();
   factory AIServiceManager() => _instance;
@@ -294,37 +278,12 @@ class AIServiceManager {
 
     _services = [];
 
-    if (CentralConfig.chatGPTKey.isNotEmpty) {
-      _services!.add(ChatGPTService(CentralConfig.chatGPTKey));
-    }
-
-    if (CentralConfig.mistralKey.isNotEmpty) {
-      _services!.add(MistralService(CentralConfig.mistralKey));
-    }
-
     if (CentralConfig.geminiKey.isNotEmpty) {
       _services!.add(GeminiService(CentralConfig.geminiKey));
     }
 
-    if (CentralConfig.claudeKey.isNotEmpty) {
-      _services!.add(ClaudeService(CentralConfig.claudeKey));
-    }
-
-    if (CentralConfig.groqKey.isNotEmpty) {
-      _services!.add(GroqService(CentralConfig.groqKey));
-    }
-
-    if (CentralConfig.huggingFaceKey.isNotEmpty) {
-      _services!.add(HuggingFaceService(CentralConfig.huggingFaceKey));
-    }
-
-    if (CentralConfig.openRouterKey.isNotEmpty) {
-      _services!.add(OpenRouterService(CentralConfig.openRouterKey));
-    }
-
-    // Fallback: If no keys are provided, we add a mock service so the application is immediately testable.
     if (_services!.isEmpty) {
-      _services!.add(MockAIService());
+      throw Exception("Google Gemini API key is missing. Please configure GEMINI_API_KEY in your environment config.");
     }
 
     return _services!;
