@@ -131,7 +131,6 @@ class _PremiumPaywallScreenState extends State<PremiumPaywallScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final limitService = Provider.of<UsageLimitService>(context);
 

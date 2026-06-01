@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../models/ai_response.dart';
 import '../services/ai_service.dart';
 import '../services/usage_limit_service.dart';
+import 'widgets/ai_response_card.dart';
 
 class AskAIScreen extends StatefulWidget {
   const AskAIScreen({super.key});
@@ -54,6 +55,7 @@ class _AskAIScreenState extends State<AskAIScreen> {
       await limitService.checkAndResetDailyLimit();
 
       if (limitService.getRemainingRights() <= 0) {
+        if (!mounted) return;
         Navigator.pushNamed(context, '/premium-paywall');
         return;
       }
@@ -340,45 +342,9 @@ class _AskAIScreenState extends State<AskAIScreen> {
                     itemCount: _responses.length,
                     itemBuilder: (context, index) {
                       final response = _responses[index];
-                      return Card(
-                        margin: const EdgeInsets.only(bottom: 16),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Icon(
-                                    response.isError
-                                        ? Icons.error_outline
-                                        : Icons.smart_toy_outlined,
-                                    color: response.isError
-                                        ? Colors.red
-                                        : Theme.of(context).colorScheme.primary,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    response.serviceName,
-                                    style:
-                                        Theme.of(context).textTheme.titleMedium,
-                                  ),
-                                  const Spacer(),
-                                  Text(
-                                    _formatTimestamp(response.timestamp),
-                                    style:
-                                        Theme.of(context).textTheme.bodySmall,
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 16),
-                              Text(
-                                response.response,
-                                style: Theme.of(context).textTheme.bodyLarge,
-                              ),
-                            ],
-                          ),
-                        ),
+                      return AIResponseCard(
+                        key: ValueKey('${response.timestamp.millisecondsSinceEpoch}_$index'),
+                        response: response,
                       );
                     },
                   ),
@@ -388,20 +354,6 @@ class _AskAIScreenState extends State<AskAIScreen> {
     );
   }
 
-  String _formatTimestamp(DateTime timestamp) {
-    final now = DateTime.now();
-    final difference = now.difference(timestamp);
-
-    if (difference.inSeconds < 60) {
-      return 'Just now';
-    } else if (difference.inMinutes < 60) {
-      return '${difference.inMinutes}m ago';
-    } else if (difference.inHours < 24) {
-      return '${difference.inHours}h ago';
-    } else {
-      return '${difference.inDays}d ago';
-    }
-  }
 
   @override
   void dispose() {

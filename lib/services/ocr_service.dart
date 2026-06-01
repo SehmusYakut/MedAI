@@ -94,9 +94,9 @@ class OCRService {
 
       final XFile? pickedFile = await imagePicker.pickImage(
         source: fromCamera ? ImageSource.camera : ImageSource.gallery,
-        maxWidth: 1800,
-        maxHeight: 1800,
-        imageQuality: 85,
+        maxWidth: 1200,
+        maxHeight: 1200,
+        imageQuality: 80,
         preferredCameraDevice:
             fromCamera ? CameraDevice.rear : CameraDevice.front,
       );

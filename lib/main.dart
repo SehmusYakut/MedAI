@@ -3,6 +3,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'views/home_screen.dart';
 import 'views/entrance_screen.dart';
 import 'views/premium_paywall_screen.dart';
@@ -16,6 +17,13 @@ import 'l10n/app_localizations.dart';
 void main() async {
   // Ensure Flutter bindings are initialized
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Load .env configuration
+  try {
+    await dotenv.load(fileName: ".env");
+  } catch (e) {
+    debugPrint('[Developer Warning] Failed to load .env configuration: $e');
+  }
 
   // Set preferred orientations
   await SystemChrome.setPreferredOrientations([
@@ -216,18 +224,18 @@ class _MyAppState extends State<MyApp> {
     const darkScheme = ColorScheme(
       brightness: Brightness.dark,
       primary: electricTeal,
-      onPrimary: const Color(0xFF000000),
-      primaryContainer: const Color(0xFF1A3A4A),
+      onPrimary: Color(0xFF000000),
+      primaryContainer: Color(0xFF1A3A4A),
       onPrimaryContainer: electricTeal,
-      secondary: const Color(0xFF64B5F6), // Bright Light Blue
-      onSecondary: const Color(0xFF000000),
-      error: const Color(0xFFFF6B6B),
-      onError: const Color(0xFF000000),
+      secondary: Color(0xFF64B5F6), // Bright Light Blue
+      onSecondary: Color(0xFF000000),
+      error: Color(0xFFFF6B6B),
+      onError: Color(0xFF000000),
       surface: darkSurfaceColor,
-      onSurface: const Color(0xFFFFFFFF),
-      outline: const Color(0xFF8ECAE6),
-      outlineVariant: const Color(0xFF4A7C9E),
-      scrim: const Color(0xFF000000),
+      onSurface: Color(0xFFFFFFFF),
+      outline: Color(0xFF8ECAE6),
+      outlineVariant: Color(0xFF4A7C9E),
+      scrim: Color(0xFF000000),
     );
 
     return ThemeData(

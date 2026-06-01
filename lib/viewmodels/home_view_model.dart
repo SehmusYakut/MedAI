@@ -31,7 +31,7 @@ class HomeViewModel extends ChangeNotifier {
   List<AIResponse> _aiResponses = [];
   ProcessingStatus _status = ProcessingStatus.idle;
   String? _errorMessage;
-  List<MedicalSnippet> _quickReviewSnippets = [];
+  final List<MedicalSnippet> _quickReviewSnippets = [];
   String? _generatedMnemonic;
 
   // Getters

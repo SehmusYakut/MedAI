@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:google_generative_ai/google_generative_ai.dart';
-import 'api_key_service.dart';
 import 'central_config.dart';
 
 abstract class AIService {

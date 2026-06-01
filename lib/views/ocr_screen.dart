@@ -185,21 +185,21 @@ class _AiLoadingState extends StatelessWidget {
               _AiResponseTile(serviceName: e.key, text: e.value, l10n: l10n)),
           // Skeleton for next pending response
           const SizedBox(height: 8),
-          Card(
+          const Card(
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const _SkeletonBox(height: 18, widthFactor: 0.4),
-                  const SizedBox(height: 16),
-                  const _SkeletonBox(height: 14),
-                  const SizedBox(height: 8),
-                  const _SkeletonBox(height: 14, widthFactor: 0.85),
-                  const SizedBox(height: 8),
-                  const _SkeletonBox(height: 14, widthFactor: 0.7),
-                  const SizedBox(height: 8),
-                  const _SkeletonBox(height: 14, widthFactor: 0.9),
+                  _SkeletonBox(height: 18, widthFactor: 0.4),
+                  SizedBox(height: 16),
+                  _SkeletonBox(height: 14),
+                  SizedBox(height: 8),
+                  _SkeletonBox(height: 14, widthFactor: 0.85),
+                  SizedBox(height: 8),
+                  _SkeletonBox(height: 14, widthFactor: 0.7),
+                  SizedBox(height: 8),
+                  _SkeletonBox(height: 14, widthFactor: 0.9),
                 ],
               ),
             ),
@@ -238,6 +238,7 @@ class _CompleteState extends StatelessWidget {
                 onPressed: () async {
                   final limitService = Provider.of<UsageLimitService>(context, listen: false);
                   await limitService.checkAndResetDailyLimit();
+                  if (!context.mounted) return;
                   if (limitService.getRemainingRights() <= 0) {
                     Navigator.pushNamed(context, '/premium-paywall');
                   } else {
