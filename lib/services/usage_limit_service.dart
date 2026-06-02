@@ -24,7 +24,7 @@ class UsageLimitService extends ChangeNotifier {
     if (CentralConfig.isRevenueCatMockMode) return;
     try {
       Purchases.addCustomerInfoUpdateListener((customerInfo) async {
-        final isPremiumActive = customerInfo.entitlements.active.isNotEmpty;
+        final isPremiumActive = customerInfo.entitlements.all['MedAI Pro']?.isActive ?? false;
         await setPremium(isPremiumActive);
       });
     } catch (e) {
@@ -38,7 +38,7 @@ class UsageLimitService extends ChangeNotifier {
     try {
       if (await Purchases.isConfigured) {
         final customerInfo = await Purchases.getCustomerInfo();
-        final isPremiumActive = customerInfo.entitlements.active.isNotEmpty;
+        final isPremiumActive = customerInfo.entitlements.all['MedAI Pro']?.isActive ?? false;
         await setPremium(isPremiumActive);
       }
     } catch (e) {

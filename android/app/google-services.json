@@ -1,49 +1,34 @@
 {
   "project_info": {
-    "project_number": "329755241965",
-    "project_id": "medai-5e81e",
-    "storage_bucket": "medai-5e81e.firebasestorage.app"
+    "project_number": "1019199798724",
+    "project_id": "medai-fbd94",
+    "storage_bucket": "medai-fbd94.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:329755241965:android:95c087e04db6efcc424be4",
+        "mobilesdk_app_id": "1:1019199798724:android:a1909dbf41899a70003891",
         "android_client_info": {
-          "package_name": "com.example.medway"
+          "package_name": "com.kiraathanelabs.medai"
         }
       },
       "oauth_client": [
         {
-          "client_id": "329755241965-rmn3tgra7ktngsp054avr0pgp053850m.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.example.medway",
-            "certificate_hash": "0436fe80c1c5770b3b805b2d546a0799b4325906"
-          }
-        },
-        {
-          "client_id": "329755241965-g6qq9bces1gn0kbqpausom37cvppav2f.apps.googleusercontent.com",
+          "client_id": "1019199798724-fe8opff9mlcoa4jk71h5h35qlu7hm5r3.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyDDrekgYGQebh1AK2UdK4O8e8DVG66KuAc"
+          "current_key": "AIzaSyCdgs3X4BFJOvGC19fzjkCeALA9HfjpRHM"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "329755241965-g6qq9bces1gn0kbqpausom37cvppav2f.apps.googleusercontent.com",
+              "client_id": "1019199798724-fe8opff9mlcoa4jk71h5h35qlu7hm5r3.apps.googleusercontent.com",
               "client_type": 3
-            },
-            {
-              "client_id": "329755241965-rr4m1890i7mr8p36frnfjjljvr5pa499.apps.googleusercontent.com",
-              "client_type": 2,
-              "ios_info": {
-                "bundle_id": "com.example.medway"
-              }
             }
           ]
         }

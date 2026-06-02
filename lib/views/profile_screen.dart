@@ -4,7 +4,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/theme_and_locale_service.dart';
+import '../services/usage_limit_service.dart';
+import '../services/central_config.dart';
 import '../l10n/app_localizations.dart';
+import 'package:purchases_ui_flutter/purchases_ui_flutter.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -101,6 +104,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
         children: [
           // User profile card
           if (user != null) _buildUserProfileCard(user, cs, isDark, isTurkish, l10n),
+          const SizedBox(height: 20),
+
+          // Subscription Status Card
+          _buildSubscriptionCard(context, cs, isDark, isTurkish, l10n),
           const SizedBox(height: 20),
 
           // Medicine Programs Academic Track Checklist
@@ -545,5 +552,181 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
       ),
     );
+  }
+
+  Widget _buildSubscriptionCard(BuildContext context, ColorScheme cs, bool isDark, bool isTurkish, AppLocalizations l10n) {
+    final limitService = Provider.of<UsageLimitService>(context);
+    final isPremium = limitService.isPremium;
+
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(24),
+        side: BorderSide(
+          color: isPremium
+              ? (isDark ? Colors.cyan.withValues(alpha: 0.5) : Colors.cyan.shade300)
+              : (isDark ? Colors.white10 : Colors.grey.shade200),
+          width: isPremium ? 2.0 : 1.5,
+        ),
+      ),
+      child: Container(
+        decoration: isPremium
+            ? BoxDecoration(
+                borderRadius: BorderRadius.circular(24),
+                gradient: LinearGradient(
+                  colors: isDark
+                      ? [
+                          Colors.cyan.withValues(alpha: 0.15),
+                          cs.primaryContainer.withValues(alpha: 0.1),
+                        ]
+                      : [
+                          Colors.cyan.shade50,
+                          Colors.blue.shade50,
+                        ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              )
+            : null,
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: isPremium
+                        ? Colors.cyan.withValues(alpha: 0.2)
+                        : cs.secondary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    isPremium ? Icons.stars_rounded : Icons.star_border_rounded,
+                    color: isPremium ? Colors.cyan : cs.secondary,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        isPremium
+                            ? (isTurkish ? "MedAI Pro Üyeliği Aktif" : "MedAI Pro Active")
+                            : (isTurkish ? "MedAI Ücretsiz Sürüm" : "MedAI Free Tier"),
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: isPremium ? (isDark ? Colors.white : Colors.cyan.shade900) : cs.onSurface,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        isPremium
+                            ? (isTurkish ? "PRO Üye: 50 Günlük Limit" : "PRO Member: 50 Daily Limit")
+                            : (isTurkish ? "Ücretsiz Üye: 5 Günlük Limit" : "Free Member: 5 Daily Limit"),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isPremium ? (isDark ? Colors.cyan.shade300 : Colors.cyan.shade700) : Colors.grey,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              isPremium
+                  ? (isTurkish
+                      ? "Günlük 50 klinik vaka hakkı, öncelikli sunucular, vaka görselleştirme ve tıbbi OCR çözme."
+                      : "Enjoy 50 daily clinical queries, priority servers, diagnostic insight graphs, and prescription OCR.")
+                  : (isTurkish
+                      ? "Günlük 5 klinik vaka hakkıyla sınırlı erişim. Tüm özellikleri açmak için Pro'ya yükseltin."
+                      : "Limited to 5 daily clinical cases. Upgrade to unlock the full clinical potential of MedAI."),
+              style: TextStyle(
+                fontSize: 12,
+                color: isDark ? Colors.white60 : Colors.black54,
+                height: 1.4,
+              ),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              height: 44,
+              child: isPremium
+                  ? ElevatedButton.icon(
+                      onPressed: () => _openCustomerCenter(),
+                      icon: const Icon(Icons.settings_suggest_rounded, size: 18),
+                      label: Text(
+                        isTurkish ? "Aboneliği Yönet" : "Manage Subscription",
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: isDark ? Colors.cyan.withValues(alpha: 0.2) : Colors.cyan.shade100,
+                        foregroundColor: isDark ? Colors.cyan : Colors.cyan.shade900,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          side: BorderSide(
+                            color: isDark ? Colors.cyan.withValues(alpha: 0.3) : Colors.cyan.shade300,
+                          ),
+                        ),
+                      ),
+                    )
+                  : FilledButton.icon(
+                      onPressed: () {
+                        Navigator.pushNamed(context, '/premium-paywall');
+                      },
+                      icon: const Icon(Icons.bolt, size: 18),
+                      label: Text(
+                        isTurkish ? "MedAI Pro'ya Yükselt" : "Upgrade to MedAI Pro",
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: Colors.cyan,
+                        foregroundColor: Colors.black,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openCustomerCenter() async {
+    final limitService = Provider.of<UsageLimitService>(context, listen: false);
+    if (CentralConfig.isRevenueCatMockMode) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Customer Center is not available in mock mode. You are currently a Premium member via local mock."),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+    try {
+      await RevenueCatUI.presentCustomerCenter();
+      // Sync entitlement status after returning from Customer Center (user might have canceled)
+      await limitService.syncSubscriptionStatus();
+    } catch (e) {
+      debugPrint('[Developer Warning] Failed to present Customer Center: $e');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Error opening Customer Center: $e"),
+          backgroundColor: Theme.of(context).colorScheme.error,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 }

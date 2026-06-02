@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
+import 'package:purchases_ui_flutter/purchases_ui_flutter.dart';
 import '../services/usage_limit_service.dart';
 import '../services/central_config.dart';
 import '../l10n/app_localizations.dart';
@@ -42,7 +43,35 @@ class _PremiumPaywallScreenState extends State<PremiumPaywallScreen> {
   @override
   void initState() {
     super.initState();
-    _fetchOfferings();
+    if (!CentralConfig.isRevenueCatMockMode) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _presentNativePaywall();
+      });
+    } else {
+      _fetchOfferings();
+    }
+  }
+
+  Future<void> _presentNativePaywall() async {
+    try {
+      await CentralConfig.configurePurchases();
+      final result = await RevenueCatUI.presentPaywall();
+      if (!mounted) return;
+      if (result == PaywallResult.purchased || result == PaywallResult.restored) {
+        final limitService = Provider.of<UsageLimitService>(context, listen: false);
+        await limitService.syncSubscriptionStatus();
+        if (!mounted) return;
+        Navigator.pop(context);
+      } else if (result == PaywallResult.cancelled) {
+        Navigator.pop(context);
+      } else {
+        // Fall back to showing custom paywall if it wasn't presented successfully or errored
+        _fetchOfferings();
+      }
+    } catch (e) {
+      debugPrint('[Developer Warning] Error presenting RevenueCat Paywall: $e');
+      _fetchOfferings();
+    }
   }
 
   Future<void> _fetchOfferings() async {
@@ -99,7 +128,7 @@ class _PremiumPaywallScreenState extends State<PremiumPaywallScreen> {
         final purchaseResult = await Purchases.purchase(purchaseParams);
         final customerInfo = purchaseResult.customerInfo;
         
-        final isPremiumActive = customerInfo.entitlements.active.isNotEmpty;
+        final isPremiumActive = customerInfo.entitlements.all['MedAI Pro']?.isActive ?? false;
         await limitService.setPremium(isPremiumActive);
       } else {
         // Fallback Mock Purchase Flow (allows testing end-to-end sandbox when keys are placeholders)
