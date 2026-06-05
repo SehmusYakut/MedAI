@@ -8,6 +8,12 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+val localProperties = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.inputStream().use { localProperties.load(it) }
+}
+
 android {
     namespace = "com.kiraathanelabs.medai"
     compileSdk = 36
@@ -40,8 +46,8 @@ android {
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = 24
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = localProperties.getProperty("flutter.versionCode")?.toIntOrNull() ?: 1
+        versionName = localProperties.getProperty("flutter.versionName") ?: "1.0"
         multiDexEnabled = true
         
         // Add this for ML Kit text recognition

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../models/chat_session.dart';
 import '../models/chat_message.dart';
 
@@ -10,8 +11,16 @@ class ChatStorageService {
 
   ChatStorageService(this._prefs);
 
+  String get _currentSessionsKey {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      return '${_sessionsKey}_${user.uid}';
+    }
+    return _sessionsKey;
+  }
+
   List<ChatSession> getAllSessions() {
-    final String? sessionsJson = _prefs.getString(_sessionsKey);
+    final String? sessionsJson = _prefs.getString(_currentSessionsKey);
     if (sessionsJson == null) return [];
     try {
       final List<dynamic> decoded = jsonDecode(sessionsJson);
@@ -27,7 +36,7 @@ class ChatStorageService {
 
   Future<void> _saveSessions(List<ChatSession> sessions) async {
     final String sessionsJson = jsonEncode(sessions.map((s) => s.toJson()).toList());
-    await _prefs.setString(_sessionsKey, sessionsJson);
+    await _prefs.setString(_currentSessionsKey, sessionsJson);
   }
 
   Future<void> saveSession(ChatSession session) async {
@@ -79,5 +88,41 @@ class ChatStorageService {
     final sessions = getAllSessions();
     sessions.removeWhere((s) => s.id == sessionId);
     await _saveSessions(sessions);
+  }
+
+  Future<void> linkGuestSessionsToUser(String userId) async {
+    final String? guestSessionsJson = _prefs.getString(_sessionsKey);
+    if (guestSessionsJson != null && guestSessionsJson.trim().isNotEmpty) {
+      try {
+        final List<dynamic> guestDecoded = jsonDecode(guestSessionsJson);
+        final guestSessions = guestDecoded.map((item) => ChatSession.fromJson(item)).toList();
+        
+        if (guestSessions.isNotEmpty) {
+          final String userKey = '${_sessionsKey}_$userId';
+          final String? userSessionsJson = _prefs.getString(userKey);
+          List<ChatSession> userSessions = [];
+          if (userSessionsJson != null && userSessionsJson.trim().isNotEmpty) {
+            final List<dynamic> userDecoded = jsonDecode(userSessionsJson);
+            userSessions = userDecoded.map((item) => ChatSession.fromJson(item)).toList();
+          }
+          
+          // Merge guest sessions into user sessions. Avoid duplicates by ID.
+          for (var guestSession in guestSessions) {
+            if (!userSessions.any((s) => s.id == guestSession.id)) {
+              userSessions.add(guestSession);
+            }
+          }
+          
+          // Save merged sessions under user key
+          final String mergedJson = jsonEncode(userSessions.map((s) => s.toJson()).toList());
+          await _prefs.setString(userKey, mergedJson);
+          
+          // Clear guest sessions
+          await _prefs.remove(_sessionsKey);
+        }
+      } catch (e) {
+        debugPrint('[ChatStorageService] Error linking guest sessions to user: $e');
+      }
+    }
   }
 }

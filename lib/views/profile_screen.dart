@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../services/theme_and_locale_service.dart';
 import '../services/usage_limit_service.dart';
 import '../services/central_config.dart';
+import '../services/chat_storage_service.dart';
 import '../l10n/app_localizations.dart';
 import 'package:purchases_ui_flutter/purchases_ui_flutter.dart';
 
@@ -20,6 +21,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String _selectedTrack = 'Phase 4-6: Clinical Clerkships';
   SharedPreferences? _prefs;
   bool _isSaving = false;
+  bool _isAuthenticating = false;
 
   final List<Map<String, String>> _tracks = [
     {
@@ -69,13 +71,86 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  Future<void> _handleGoogleSignIn() async {
+    if (_isAuthenticating) return;
+
+    setState(() {
+      _isAuthenticating = true;
+    });
+
+    try {
+      // 1. Sign out of Google to ensure the account selection sheet always prompts
+      try {
+        await GoogleSignIn.instance.signOut();
+      } catch (e) {
+        debugPrint('Google Sign-out before sign-in ignored: $e');
+      }
+
+      // 2. Trigger Google Sign-In authenticate
+      final googleUser = await GoogleSignIn.instance.authenticate();
+      
+      // 3. Obtain authentication details synchronously
+      final googleAuth = googleUser.authentication;
+
+      // 4. Retrieve access token via authorizeScopes explicitly for scopes
+      final clientAuth = await googleUser.authorizationClient.authorizeScopes(['email', 'profile']);
+      final accessToken = clientAuth.accessToken;
+
+      // 5. Construct credential
+      final AuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      // 6. Sign in to Firebase Auth.
+      final userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+      final newUser = userCredential.user;
+
+      if (newUser != null) {
+        if (!mounted) return;
+        // Link offline guest sessions to user account
+        final storage = Provider.of<ChatStorageService>(context, listen: false);
+        await storage.linkGuestSessionsToUser(newUser.uid);
+
+        if (mounted) {
+          final l10n = AppLocalizations.of(context);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(l10n.profileSyncSuccess),
+              backgroundColor: Colors.green,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Google Sign-In Exception: $e');
+      if (mounted) {
+        final l10n = AppLocalizations.of(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${l10n.signInFailed}: $e'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isAuthenticating = false;
+        });
+      }
+    }
+  }
+
   Future<void> _handleSignOut(BuildContext context) async {
     try {
       await FirebaseAuth.instance.signOut();
       await GoogleSignIn.instance.signOut();
       
       if (context.mounted) {
-        Navigator.of(context).popUntil((route) => route.isFirst);
+        setState(() {}); // Refresh local state
       }
     } catch (e) {
       debugPrint('Sign out error: $e');
@@ -102,8 +177,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         children: [
-          // User profile card
-          if (user != null) _buildUserProfileCard(user, cs, isDark, isTurkish, l10n),
+          // User profile card or login tour trigger
+          if (user != null)
+            _buildUserProfileCard(user, cs, isDark, isTurkish, l10n)
+          else
+            _buildGoogleSignInCard(cs, isDark, isTurkish, l10n),
           const SizedBox(height: 20),
 
           // Subscription Status Card
@@ -122,28 +200,156 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _buildLegacyToolsCard(cs, isDark, isTurkish, l10n),
           const SizedBox(height: 32),
 
-          // Log Out Button
-          SizedBox(
-            width: double.infinity,
-            height: 52,
-            child: OutlinedButton.icon(
-              onPressed: () => _handleSignOut(context),
-              icon: const Icon(Icons.logout_rounded),
-              label: Text(
-                l10n.signOutAccount,
-                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
-              ),
-              style: OutlinedButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+          // Log Out Button (Only displayed for signed-in accounts)
+          if (user != null) ...[
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: OutlinedButton.icon(
+                onPressed: () => _handleSignOut(context),
+                icon: const Icon(Icons.logout_rounded),
+                label: Text(
+                  l10n.signOutAccount,
+                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
                 ),
-                foregroundColor: cs.error,
-                side: BorderSide(color: cs.error, width: 1.5),
+                style: OutlinedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  foregroundColor: cs.error,
+                  side: BorderSide(color: cs.error, width: 1.5),
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 40),
+            const SizedBox(height: 40),
+          ],
         ],
+      ),
+    );
+  }
+
+  Widget _buildGoogleSignInCard(ColorScheme cs, bool isDark, bool isTurkish, AppLocalizations l10n) {
+    const darkBlue = Color(0xFF0F1E36);
+    const electricTeal = Color(0xFF00E5FF);
+
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(24),
+        side: BorderSide(
+          color: isDark ? Colors.white10 : Colors.grey.shade200,
+          width: 1.5,
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: cs.primary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    Icons.sync_rounded,
+                    color: cs.primary,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    l10n.profileSyncCardTitle,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              l10n.profileSyncCardDesc,
+              style: TextStyle(
+                fontSize: 12.5,
+                color: isDark ? Colors.white60 : Colors.black54,
+                height: 1.4,
+              ),
+            ),
+            const SizedBox(height: 16),
+            _isAuthenticating
+                ? const Center(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8.0),
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(electricTeal),
+                      ),
+                    ),
+                  )
+                : Container(
+                    width: double.infinity,
+                    height: 52,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: electricTeal.withValues(alpha: 0.05),
+                          blurRadius: 8,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: Theme(
+                      data: ThemeData(
+                        splashColor: electricTeal.withValues(alpha: 0.1),
+                        highlightColor: electricTeal.withValues(alpha: 0.05),
+                      ),
+                      child: InkWell(
+                        onTap: _handleGoogleSignIn,
+                        borderRadius: BorderRadius.circular(16),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: isDark ? darkBlue : Colors.grey.shade50,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: electricTeal.withValues(alpha: 0.3),
+                              width: 1.5,
+                            ),
+                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              CustomPaint(
+                                size: const Size(20, 20),
+                                painter: _GoogleVectorPainter(
+                                  backgroundColor: isDark ? darkBlue : Colors.grey.shade50,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Text(
+                                l10n.profileSignInGoogle,
+                                style: TextStyle(
+                                  fontFamily: 'Inter',
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                  color: isDark ? Colors.white : Colors.black87,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+          ],
+        ),
       ),
     );
   }
@@ -557,7 +763,103 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildSubscriptionCard(BuildContext context, ColorScheme cs, bool isDark, bool isTurkish, AppLocalizations l10n) {
     final limitService = Provider.of<UsageLimitService>(context);
     final isPremium = limitService.isPremium;
+    final user = FirebaseAuth.instance.currentUser;
 
+    // Guest Subscription Card
+    if (user == null) {
+      return Card(
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+          side: BorderSide(
+            color: isDark ? Colors.white10 : Colors.grey.shade200,
+            width: 1.5,
+          ),
+        ),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: cs.secondary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(
+                      Icons.star_border_rounded,
+                      color: cs.secondary,
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          isTurkish ? "MedAI Ücretsiz Sürüm" : "MedAI Free Tier",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: cs.onSurface,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          isTurkish ? "Kayıt Olun: Tıbbi Özellikleri Açın" : "Sign In: Unlock Medical Tiers",
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Text(
+                isTurkish
+                    ? "Premium sürümlere abone olmak, verilerinizi yedeklemek ve günlük vaka limitlerini artırmak için Google ile giriş yapmanız gerekmektedir."
+                    : "Sign in with Google to enable cross-device backup, manage premium subscription plans, and increase daily clinical case query limits.",
+                style: TextStyle(
+                  fontSize: 12,
+                  color: isDark ? Colors.white60 : Colors.black54,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                height: 44,
+                child: FilledButton.icon(
+                  onPressed: _isAuthenticating ? null : _handleGoogleSignIn,
+                  icon: const Icon(Icons.login_rounded, size: 18),
+                  label: Text(
+                    isTurkish ? "Giriş Yap ve Yükselt" : "Sign In to Upgrade",
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: Colors.cyan,
+                    foregroundColor: Colors.black,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Signed-in Subscription Card
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
@@ -729,4 +1031,70 @@ class _ProfileScreenState extends State<ProfileScreen> {
       );
     }
   }
+}
+
+class _GoogleVectorPainter extends CustomPainter {
+  final Color backgroundColor;
+  _GoogleVectorPainter({required this.backgroundColor});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final double r = size.width / 2;
+    final Offset center = Offset(r, r);
+
+    // Google 'G' geometry
+    final paint = Paint()
+      ..style = PaintingStyle.fill
+      ..isAntiAlias = true;
+
+    // Red sector
+    paint.color = const Color(0xFFEA4335);
+    final pathRed = Path()
+      ..moveTo(r, r)
+      ..lineTo(r - 0.7 * r, r - 0.7 * r)
+      ..arcTo(Rect.fromCircle(center: center, radius: r), -2.35, 1.57, false)
+      ..lineTo(r, r);
+    canvas.drawPath(pathRed, paint);
+
+    // Yellow sector
+    paint.color = const Color(0xFFFBBC05);
+    final pathYellow = Path()
+      ..moveTo(r, r)
+      ..lineTo(r - 0.7 * r, r - 0.7 * r)
+      ..arcTo(Rect.fromCircle(center: center, radius: r), -2.35, -1.57, false)
+      ..lineTo(r, r);
+    canvas.drawPath(pathYellow, paint);
+
+    // Green sector
+    paint.color = const Color(0xFF34A853);
+    final pathGreen = Path()
+      ..moveTo(r, r)
+      ..lineTo(r + 0.7 * r, r + 0.7 * r)
+      ..arcTo(Rect.fromCircle(center: center, radius: r), 0.78, 1.57, false)
+      ..lineTo(r, r);
+    canvas.drawPath(pathGreen, paint);
+
+    // Blue sector (with the bar)
+    paint.color = const Color(0xFF4285F4);
+    final pathBlue = Path()
+      ..moveTo(r, r)
+      ..lineTo(r + 0.7 * r, r + 0.7 * r)
+      ..arcTo(Rect.fromCircle(center: center, radius: r), 0.78, -1.57, false)
+      ..lineTo(r, r);
+    canvas.drawPath(pathBlue, paint);
+
+    // Inner cutout to make it a 'G' (uses parameter color to blend with button background)
+    final cutoutPaint = Paint()
+      ..color = backgroundColor
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(center, r * 0.45, cutoutPaint);
+
+    // The horizontal blue bar of the 'G'
+    paint.color = const Color(0xFF4285F4);
+    final barRect = Rect.fromLTRB(r, r - r * 0.2, r + r * 0.9, r + r * 0.2);
+    canvas.drawRect(barRect, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

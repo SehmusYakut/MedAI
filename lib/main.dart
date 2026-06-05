@@ -5,11 +5,10 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'firebase_options.dart';
 import 'views/home_screen.dart';
-import 'views/entrance_screen.dart';
+import 'views/onboarding_screen.dart';
 import 'views/premium_paywall_screen.dart';
 import 'views/ask_ai_screen.dart';
 import 'views/profile_screen.dart';
@@ -74,25 +73,17 @@ void main() async {
   ));
 }
 
-class AuthGate extends StatelessWidget {
-  const AuthGate({super.key});
+class AppLaunchGate extends StatelessWidget {
+  const AppLaunchGate({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<User?>(
-      stream: FirebaseAuth.instance.authStateChanges(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
-            body: Center(
-              child: CircularProgressIndicator(),
-            ),
-          );
+    return Consumer<ThemeAndLocaleService>(
+      builder: (context, settings, _) {
+        if (!settings.seenOnboarding) {
+          return const OnboardingScreen();
         }
-        if (snapshot.hasData) {
-          return const HomeScreen();
-        }
-        return const EntranceScreen();
+        return const HomeScreen();
       },
     );
   }
@@ -146,9 +137,10 @@ class MyApp extends StatelessWidget {
             theme: _buildLightTheme(),
             darkTheme: _buildDarkTheme(),
             themeMode: settings.themeMode,
-            home: const AuthGate(),
+            home: const AppLaunchGate(),
             routes: {
               '/home': (context) => const HomeScreen(),
+              '/onboarding': (context) => const OnboardingScreen(),
               '/premium-paywall': (context) => const PremiumPaywallScreen(),
               '/ask-ai': (context) => const AskAIScreen(),
               '/profile': (context) => const ProfileScreen(),

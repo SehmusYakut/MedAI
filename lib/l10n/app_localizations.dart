@@ -218,6 +218,21 @@ class AppLocalizations {
       'no_questions_saved_desc': 'Use the OCR Scanner to scan and save medical questions.',
       'question_details': 'Question Details',
       'performance': 'Performance',
+      'onboarding_skip': 'Skip',
+      'onboarding_next': 'Next',
+      'onboarding_done': 'Get Started',
+      'onboarding_slide1_title': 'Welcome to MedAI',
+      'onboarding_slide1_desc': 'Your clinical AI co-pilot for diagnostic reasoning and evidence-based insights.',
+      'onboarding_slide2_title': 'OCR Prescription Scanner',
+      'onboarding_slide2_desc': 'Instantly scan and decode patient charts, prescriptions, and exam materials.',
+      'onboarding_slide3_title': 'Medicine Reminders & TUS',
+      'onboarding_slide3_desc': 'Organize medicine schedules and access specialized board exam question breakdowns.',
+      'profile_sync_card_title': 'Sync Your Clinical History',
+      'profile_sync_card_desc': 'Sign in with Google to securely back up your chat histories and access premium benefits across devices.',
+      'profile_sign_in_google': 'Sign in with Google',
+      'profile_signing_in': 'Signing in...',
+      'profile_sync_success': 'Google Account synced successfully! Your offline history has been linked.',
+      'medical_disclaimer': 'MedAI is an educational language model, not a certified clinical tool, and cannot provide official medical advice or diagnostic prescriptions.',
     },
     'tr': {
       'app_title': 'MedAI',
@@ -424,6 +439,21 @@ class AppLocalizations {
       'no_questions_saved_desc': 'Tıbbi soruları taramak ve kaydetmek için OCR Tarayıcıyı kullanın.',
       'question_details': 'Soru Detayları',
       'performance': 'Performans',
+      'onboarding_skip': 'Atla',
+      'onboarding_next': 'İleri',
+      'onboarding_done': 'Başlayın',
+      'onboarding_slide1_title': 'MedAI\'a Hoş Geldiniz',
+      'onboarding_slide1_desc': 'Teşhis odaklı muhakeme ve kanıta dayalı analizler için klinik yapay zeka yardımcınız.',
+      'onboarding_slide2_title': 'OCR Reçete Tarayıcı',
+      'onboarding_slide2_desc': 'Hasta kartlarını, reçeteleri ve sınav materyallerini anında tarayın ve çözümleyin.',
+      'onboarding_slide3_title': 'İlaç Hatırlatıcıları ve TUS',
+      'onboarding_slide3_desc': 'İlaç takvimlerini düzenleyin ve özel kurul sınavı soru analizlerine erişin.',
+      'profile_sync_card_title': 'Klinik Geçmişinizi Eşitleyin',
+      'profile_sync_card_desc': 'Sohbet geçmişinizi güvenli bir şekilde yedeklemek ve premium avantajlara cihazlar arası erişmek için Google ile giriş yapın.',
+      'profile_sign_in_google': 'Google ile Giriş Yap',
+      'profile_signing_in': 'Giriş yapılıyor...',
+      'profile_sync_success': 'Google hesabı başarıyla eşitlendi! Çevrimdışı geçmişiniz bağlandı.',
+      'medical_disclaimer': 'MedAI eğitsel bir dil modelidir, sertifikalı bir klinik araç değildir ve resmi tıbbi tavsiye veya teşhis reçetesi sağlayamaz.',
     },
   };
 
@@ -592,6 +622,21 @@ class AppLocalizations {
   String get noQuestionsSavedDesc => translate('no_questions_saved_desc');
   String get questionDetails => translate('question_details');
   String get performance => translate('performance');
+  String get onboardingSkip => translate('onboarding_skip');
+  String get onboardingNext => translate('onboarding_next');
+  String get onboardingDone => translate('onboarding_done');
+  String get onboardingSlide1Title => translate('onboarding_slide1_title');
+  String get onboardingSlide1Desc => translate('onboarding_slide1_desc');
+  String get onboardingSlide2Title => translate('onboarding_slide2_title');
+  String get onboardingSlide2Desc => translate('onboarding_slide2_desc');
+  String get onboardingSlide3Title => translate('onboarding_slide3_title');
+  String get onboardingSlide3Desc => translate('onboarding_slide3_desc');
+  String get profileSyncCardTitle => translate('profile_sync_card_title');
+  String get profileSyncCardDesc => translate('profile_sync_card_desc');
+  String get profileSignInGoogle => translate('profile_sign_in_google');
+  String get profileSigningIn => translate('profile_signing_in');
+  String get profileSyncSuccess => translate('profile_sync_success');
+  String get medicalDisclaimer => translate('medical_disclaimer');
 }
 
 class _AppLocalizationsDelegate

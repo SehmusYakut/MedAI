@@ -553,6 +553,19 @@ class _AskAIScreenState extends State<AskAIScreen> {
                       ),
                     ),
                   ),
+                  const SizedBox(height: 8),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                    child: Text(
+                      l10n.medicalDisclaimer,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: isDark ? Colors.white38 : Colors.black38,
+                        height: 1.35,
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),

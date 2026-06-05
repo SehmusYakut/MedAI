@@ -3,6 +3,14 @@ import 'package:http/http.dart' as http;
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'central_config.dart';
 
+const String _systemPrompt = '''
+You are MedAI, an expert clinical assistant for medical students. 
+CRITICAL: You must detect the language of the user's query (e.g., English or Turkish) and reply in the EXACT SAME language. If the user asks in Turkish, reply in Turkish. If the user asks in English, reply in English. Do not mix languages or translate to a different language.
+Guidelines:
+1. Provide accurate, high-yield, evidence-based medical insights.
+2. Be concise. Avoid conversational filler or redundant explanations to save tokens.
+''';
+
 abstract class AIService {
   Future<String> generateResponse(String prompt);
   String get name;
@@ -14,7 +22,7 @@ class ChatGPTService implements AIService {
   ChatGPTService(this.apiKey);
 
   @override
-  String get name => 'ChatGPT';
+  String get name => 'MedAI Clinical Engine';
 
   @override
   Future<String> generateResponse(String prompt) async {
@@ -27,17 +35,18 @@ class ChatGPTService implements AIService {
       body: jsonEncode({
         'model': 'gpt-3.5-turbo',
         'messages': [
+          {'role': 'system', 'content': _systemPrompt},
           {'role': 'user', 'content': prompt},
         ],
       }),
-    );
+    ).timeout(const Duration(seconds: 30));
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       return data['choices'][0]['message']['content'];
     } else {
       throw Exception(
-          'Failed to get response from ChatGPT: ${response.statusCode}');
+          'Failed to get response from MedAI Clinical Engine: ${response.statusCode}');
     }
   }
 }
@@ -48,7 +57,7 @@ class MistralService implements AIService {
   MistralService(this.apiKey);
 
   @override
-  String get name => 'Mistral';
+  String get name => 'MedAI Core Engine';
 
   @override
   Future<String> generateResponse(String prompt) async {
@@ -61,17 +70,18 @@ class MistralService implements AIService {
       body: jsonEncode({
         'model': 'mistral-tiny',
         'messages': [
+          {'role': 'system', 'content': _systemPrompt},
           {'role': 'user', 'content': prompt},
         ],
       }),
-    );
+    ).timeout(const Duration(seconds: 30));
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       return data['choices'][0]['message']['content'];
     } else {
       throw Exception(
-          'Failed to get response from Mistral: ${response.statusCode}');
+          'Failed to get response from MedAI Core Engine: ${response.statusCode}');
     }
   }
 }
@@ -82,7 +92,7 @@ class GeminiService implements AIService {
   GeminiService(this.apiKey);
 
   @override
-  String get name => 'Gemini';
+  String get name => 'MedAI Reasoning Engine';
 
   @override
   Future<String> generateResponse(String prompt) async {
@@ -90,25 +100,19 @@ class GeminiService implements AIService {
       final model = GenerativeModel(
         model: 'gemini-2.5-flash-lite',
         apiKey: apiKey,
-        systemInstruction: Content.system('''
-You are MedAI, an expert clinical assistant for medical students. 
-Guidelines:
-1. Provide accurate, high-yield, evidence-based medical insights.
-2. Be concise. Avoid conversational filler or redundant explanations to save tokens.
-3. CRITICAL: Identify the language of the user's prompt (e.g., Turkish or English) and reply exclusively in that exact language. Do not mix languages.
-'''.trim()),
+        systemInstruction: Content.system(_systemPrompt.trim()),
       );
 
       final content = [Content.text(prompt)];
-      final response = await model.generateContent(content);
+      final response = await model.generateContent(content).timeout(const Duration(seconds: 30));
 
       if (response.text != null) {
         return response.text!;
       } else {
-        throw Exception('No response from Gemini');
+        throw Exception('No response from MedAI Reasoning Engine');
       }
     } catch (e) {
-      throw Exception('Failed to get response from Gemini: $e');
+      throw Exception('Failed to get response from MedAI Reasoning Engine: $e');
     }
   }
 }
@@ -119,7 +123,7 @@ class ClaudeService implements AIService {
   ClaudeService(this.apiKey);
 
   @override
-  String get name => 'Claude';
+  String get name => 'MedAI Advanced Engine';
 
   @override
   Future<String> generateResponse(String prompt) async {
@@ -133,21 +137,22 @@ class ClaudeService implements AIService {
       body: jsonEncode({
         'model': 'claude-3-sonnet-20240229',
         'max_tokens': 1024,
+        'system': _systemPrompt,
         'messages': [
           {'role': 'user', 'content': prompt},
         ],
       }),
-    );
+    ).timeout(const Duration(seconds: 30));
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       if (data['content'] is List && data['content'].isNotEmpty) {
-        return data['content'][0]['text'] ?? 'No response from Claude';
+        return data['content'][0]['text'] ?? 'No response from MedAI Advanced Engine';
       }
-      throw Exception('Invalid response format from Claude');
+      throw Exception('Invalid response format from MedAI Advanced Engine');
     } else {
       throw Exception(
-          'Failed to get response from Claude: ${response.statusCode} - ${response.body}');
+          'Failed to get response from MedAI Advanced Engine: ${response.statusCode} - ${response.body}');
     }
   }
 }
@@ -158,7 +163,7 @@ class GroqService implements AIService {
   GroqService(this.apiKey);
 
   @override
-  String get name => 'Groq';
+  String get name => 'MedAI Fast Engine';
 
   @override
   Future<String> generateResponse(String prompt) async {
@@ -171,20 +176,21 @@ class GroqService implements AIService {
       body: jsonEncode({
         'model': 'mixtral-8x7b-32768',
         'messages': [
+          {'role': 'system', 'content': _systemPrompt},
           {'role': 'user', 'content': prompt},
         ],
         'temperature': 0.7,
         'max_tokens': 1024,
       }),
-    );
+    ).timeout(const Duration(seconds: 30));
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       return data['choices'][0]['message']['content'] ??
-          'No response from Groq';
+          'No response from MedAI Fast Engine';
     } else {
       throw Exception(
-          'Failed to get response from Groq: ${response.statusCode}');
+          'Failed to get response from MedAI Fast Engine: ${response.statusCode}');
     }
   }
 }
@@ -195,7 +201,7 @@ class HuggingFaceService implements AIService {
   HuggingFaceService(this.apiKey);
 
   @override
-  String get name => 'HuggingFace';
+  String get name => 'MedAI Research Engine';
 
   @override
   Future<String> generateResponse(String prompt) async {
@@ -206,23 +212,23 @@ class HuggingFaceService implements AIService {
         'Authorization': 'Bearer $apiKey',
       },
       body: jsonEncode({
-        'inputs': prompt,
+        'inputs': 'System: $_systemPrompt\nUser: $prompt\nAssistant:',
         'parameters': {
           'max_length': 512,
           'temperature': 0.7,
         }
       }),
-    );
+    ).timeout(const Duration(seconds: 30));
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       if (data is List && data.isNotEmpty) {
-        return data[0]['generated_text'] ?? 'No response from HuggingFace';
+        return data[0]['generated_text'] ?? 'No response from MedAI Research Engine';
       }
-      return 'No response from HuggingFace';
+      return 'No response from MedAI Research Engine';
     } else {
       throw Exception(
-          'Failed to get response from HuggingFace: ${response.statusCode}');
+          'Failed to get response from MedAI Research Engine: ${response.statusCode}');
     }
   }
 }
@@ -233,7 +239,7 @@ class OpenRouterService implements AIService {
   OpenRouterService(this.apiKey);
 
   @override
-  String get name => 'OpenRouter';
+  String get name => 'MedAI Hybrid Engine';
 
   @override
   Future<String> generateResponse(String prompt) async {
@@ -248,20 +254,21 @@ class OpenRouterService implements AIService {
       body: jsonEncode({
         'model': 'meta-llama/llama-2-70b-chat',
         'messages': [
+          {'role': 'system', 'content': _systemPrompt},
           {'role': 'user', 'content': prompt},
         ],
         'temperature': 0.7,
         'max_tokens': 1024,
       }),
-    );
+    ).timeout(const Duration(seconds: 30));
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       return data['choices'][0]['message']['content'] ??
-          'No response from OpenRouter';
+          'No response from MedAI Hybrid Engine';
     } else {
       throw Exception(
-          'Failed to get response from OpenRouter: ${response.statusCode}');
+          'Failed to get response from MedAI Hybrid Engine: ${response.statusCode}');
     }
   }
 }
@@ -283,10 +290,9 @@ class AIServiceManager {
     }
 
     if (_services!.isEmpty) {
-      throw Exception("Google Gemini API key is missing. Please configure GEMINI_API_KEY in your environment config.");
+      throw Exception("MedAI Reasoning Engine API key is missing. Please configure GEMINI_API_KEY in your environment config.");
     }
 
     return _services!;
   }
-
 }
