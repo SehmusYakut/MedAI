@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -127,9 +128,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
       debugPrint('Google Sign-In Exception: $e');
       if (mounted) {
         final l10n = AppLocalizations.of(context);
+        final String errorStr = e.toString().toLowerCase();
+        
+        String displayMessage = '${l10n.signInFailed}: $e';
+        if (errorStr.contains('12500') || (e is PlatformException && e.code == '12500')) {
+          displayMessage = l10n.signInConfigError;
+        } else if (errorStr.contains('16') || 
+                   errorStr.contains('cancel') || 
+                   (e is PlatformException && (e.code == '16' || e.code == 'sign_in_canceled' || e.code.contains('cancel')))) {
+          displayMessage = l10n.signInCanceled;
+        }
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${l10n.signInFailed}: $e'),
+            content: Text(displayMessage),
             backgroundColor: Theme.of(context).colorScheme.error,
             behavior: SnackBarBehavior.floating,
           ),
