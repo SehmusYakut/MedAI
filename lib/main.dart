@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'firebase_options.dart';
 import 'views/home_screen.dart';
 import 'views/onboarding_screen.dart';
@@ -34,15 +33,6 @@ void main() async {
     );
   } catch (e) {
     debugPrint('[Developer Warning] Failed to initialize Firebase: $e');
-  }
-
-  // Initialize Google Sign-In
-  try {
-    await GoogleSignIn.instance.initialize(
-      serverClientId: '329755241965-g6qq9bces1gn0kbqpausom37cvppav2f.apps.googleusercontent.com',
-    );
-  } catch (e) {
-    debugPrint('[Developer Warning] Failed to initialize Google Sign-In: $e');
   }
 
   // Load .env configuration
@@ -100,7 +90,8 @@ class MyApp extends StatelessWidget {
   });
 
   static void setLocale(BuildContext context, Locale newLocale) {
-    Provider.of<ThemeAndLocaleService>(context, listen: false).setLocale(newLocale);
+    Provider.of<ThemeAndLocaleService>(context, listen: false)
+        .setLocale(newLocale);
   }
 
   static void toggleTheme(BuildContext context) {
@@ -114,7 +105,8 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider.value(value: settingsService),
         Provider<ChatStorageService>.value(value: chatStorageService),
-        ChangeNotifierProvider(create: (_) => MedicineProgramViewModel(prefs: prefs)),
+        ChangeNotifierProvider(
+            create: (_) => MedicineProgramViewModel(prefs: prefs)),
         ChangeNotifierProvider(create: (_) => OCRViewModel(prefs: prefs)),
         ChangeNotifierProvider(create: (_) => UsageLimitService(prefs)),
       ],
@@ -273,7 +265,6 @@ class MyApp extends StatelessWidget {
           borderRadius: BorderRadius.all(Radius.circular(16)),
         ),
       ),
-
       appBarTheme: const AppBarTheme(
         centerTitle: true,
         elevation: 0,

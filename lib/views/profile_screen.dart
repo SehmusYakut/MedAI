@@ -9,6 +9,7 @@ import '../services/usage_limit_service.dart';
 import '../services/central_config.dart';
 import '../services/chat_storage_service.dart';
 import '../l10n/app_localizations.dart';
+import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:purchases_ui_flutter/purchases_ui_flutter.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -23,6 +24,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   SharedPreferences? _prefs;
   bool _isSaving = false;
   bool _isAuthenticating = false;
+
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    scopes: ['email', 'profile'],
+    serverClientId: '329755241965-g6qq9bces1gn0kbqpausom37cvppav2f.apps.googleusercontent.com',
+  );
 
   final List<Map<String, String>> _tracks = [
     {
@@ -82,24 +88,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
     try {
       // 1. Sign out of Google to ensure the account selection sheet always prompts
       try {
-        await GoogleSignIn.instance.signOut();
+        await _googleSignIn.signOut();
       } catch (e) {
         debugPrint('Google Sign-out before sign-in ignored: $e');
       }
 
-      // 2. Trigger Google Sign-In authenticate
-      final googleUser = await GoogleSignIn.instance.authenticate();
-      
-      // 3. Obtain authentication details synchronously
-      final googleAuth = googleUser.authentication;
+      // 2. Trigger standard Google Sign-In sheet using the instance
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
 
-      // 4. Retrieve access token via authorizeScopes explicitly for scopes
-      final clientAuth = await googleUser.authorizationClient.authorizeScopes(['email', 'profile']);
-      final accessToken = clientAuth.accessToken;
+      if (googleUser == null) {
+        // User canceled the sign-in flow gracefully
+        return;
+      }
 
-      // 5. Construct credential
+      // 3. Obtain authentication details tokens correctly
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+
+      // 4. Construct the Firebase credential using verified tokens
       final AuthCredential credential = GoogleAuthProvider.credential(
-        accessToken: accessToken,
+        accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
 
@@ -111,7 +118,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
         if (!mounted) return;
         // Link offline guest sessions to user account
         final storage = Provider.of<ChatStorageService>(context, listen: false);
+        final limitService = Provider.of<UsageLimitService>(context, listen: false);
         await storage.linkGuestSessionsToUser(newUser.uid);
+
+        // RevenueCat User Linking (Log In)
+        if (!CentralConfig.isRevenueCatMockMode) {
+          try {
+            await Purchases.logIn(newUser.uid);
+            // Sync status immediately to apply credit restoration
+            await limitService.syncSubscriptionStatus();
+          } catch (rcError) {
+            debugPrint('[Developer Warning] Failed to log in user to RevenueCat: $rcError');
+          }
+        }
 
         if (mounted) {
           final l10n = AppLocalizations.of(context);
@@ -131,11 +150,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         final String errorStr = e.toString().toLowerCase();
         
         String displayMessage = '${l10n.signInFailed}: $e';
-        if (errorStr.contains('12500') || (e is PlatformException && e.code == '12500')) {
-          displayMessage = l10n.signInConfigError;
-        } else if (errorStr.contains('16') || 
-                   errorStr.contains('cancel') || 
-                   (e is PlatformException && (e.code == '16' || e.code == 'sign_in_canceled' || e.code.contains('cancel')))) {
+        if (e is PlatformException || errorStr.contains('config') || errorStr.contains('developer') || errorStr.contains('api_exception') || errorStr.contains('network')) {
+          displayMessage = l10n.googleSignInFallback;
+        } else if (errorStr.contains('cancel') || (e is PlatformException && (e.code == '16' || e.code == 'sign_in_canceled' || e.code.contains('cancel')))) {
           displayMessage = l10n.signInCanceled;
         }
 
@@ -159,9 +176,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _handleSignOut(BuildContext context) async {
     try {
       await FirebaseAuth.instance.signOut();
-      await GoogleSignIn.instance.signOut();
+      await _googleSignIn.signOut();
+      
+      // Sign out of RevenueCat and trigger status sync
+      if (!CentralConfig.isRevenueCatMockMode) {
+        try {
+          await Purchases.logOut();
+        } catch (rcError) {
+          debugPrint('[Developer Warning] Failed to log out of RevenueCat: $rcError');
+        }
+      }
       
       if (context.mounted) {
+        final limitService = Provider.of<UsageLimitService>(context, listen: false);
+        await limitService.syncSubscriptionStatus();
         setState(() {}); // Refresh local state
       }
     } catch (e) {

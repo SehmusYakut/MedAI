@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'central_config.dart';
 
 class UsageLimitService extends ChangeNotifier {
@@ -14,21 +15,23 @@ class UsageLimitService extends ChangeNotifier {
   int _remainingQueries = 5;
   DateTime _lastResetTime = DateTime.now();
   bool _isPremium = false;
+  bool _listenerInitialized = false;
 
   UsageLimitService(this._prefs) {
     _loadFromPrefs();
-    _initRevenueCatListener();
     // Sync the status asynchronously on startup to verify against active entitlements
     syncSubscriptionStatus();
   }
 
   void _initRevenueCatListener() {
     if (CentralConfig.isRevenueCatMockMode) return;
+    if (_listenerInitialized) return;
     try {
       Purchases.addCustomerInfoUpdateListener((customerInfo) async {
         final isPremiumActive = customerInfo.entitlements.all['MedAI Pro']?.isActive ?? false;
         await setPremium(isPremiumActive);
       });
+      _listenerInitialized = true;
     } catch (e) {
       debugPrint('[Developer Warning] Failed to register RevenueCat listener: $e');
     }
@@ -38,7 +41,26 @@ class UsageLimitService extends ChangeNotifier {
   Future<void> syncSubscriptionStatus() async {
     if (CentralConfig.isRevenueCatMockMode) return;
     try {
+      // Ensure RevenueCat is configured before calling any Purchases API
+      await CentralConfig.configurePurchases();
+
       if (await Purchases.isConfigured) {
+        _initRevenueCatListener();
+
+        // Sync authenticated Firebase user with RevenueCat
+        final firebaseUser = FirebaseAuth.instance.currentUser;
+        if (firebaseUser != null) {
+          final rcAppUserId = await Purchases.appUserID;
+          if (rcAppUserId != firebaseUser.uid) {
+            await Purchases.logIn(firebaseUser.uid);
+          }
+        } else {
+          final rcAppUserId = await Purchases.appUserID;
+          if (!rcAppUserId.startsWith(r'$RCAnonymousID')) {
+            await Purchases.logOut();
+          }
+        }
+
         final customerInfo = await Purchases.getCustomerInfo();
         final isPremiumActive = customerInfo.entitlements.all['MedAI Pro']?.isActive ?? false;
         await setPremium(isPremiumActive);

@@ -67,5 +67,19 @@ void main() {
       await service.decrementRight();
       expect(service.getRemainingRights(), 4);
     });
+
+    test('Transitions between Free and Premium tiers update remaining rights correctly', () async {
+      final service = UsageLimitService(prefs);
+      expect(service.isPremium, false);
+      expect(service.getRemainingRights(), 5);
+
+      await service.setPremium(true);
+      expect(service.isPremium, true);
+      expect(service.getRemainingRights(), 50);
+
+      await service.setPremium(false);
+      expect(service.isPremium, false);
+      expect(service.getRemainingRights(), 5);
+    });
   });
 }

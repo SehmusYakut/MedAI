@@ -236,6 +236,7 @@ class AppLocalizations {
       'signInCanceled': 'Sign-in was canceled or authentication failed.',
       'signInConfigError': 'Google Sign-In configuration error (12500). Please verify Google Play Services.',
       'off_topic_warning': 'Warning: Asking off-topic questions reduces your remaining daily tokens.',
+      'google_signin_fallback': 'Google Sign-In is temporarily unavailable. You can safely continue using the app as a Guest.',
     },
     'tr': {
       'app_title': 'MedAI',
@@ -460,6 +461,7 @@ class AppLocalizations {
       'signInCanceled': 'Giriş işlemi iptal edildi veya kimlik doğrulama başarısız oldu.',
       'signInConfigError': 'Google Giriş yapılandırma hatası (12500). Lütfen Google Play Servislerini kontrol edin.',
       'off_topic_warning': 'Uyarı: Konu dışı sorular sormak kalan günlük haklarınızı azaltır.',
+      'google_signin_fallback': 'Google ile Giriş şu anda kullanılamıyor. Misafir olarak güvenle kullanmaya devam edebilirsiniz.',
     },
   };
 
@@ -646,6 +648,7 @@ class AppLocalizations {
   String get signInCanceled => translate('signInCanceled');
   String get signInConfigError => translate('signInConfigError');
   String get offTopicWarning => translate('off_topic_warning');
+  String get googleSignInFallback => translate('google_signin_fallback');
 }
 
 class _AppLocalizationsDelegate
