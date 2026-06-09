@@ -163,7 +163,30 @@ class _AskAIScreenState extends State<AskAIScreen> {
 
         final response = await service.generateResponse(prompt);
 
-        await limitService.decrementRight();
+        final isOffTopic = response.trim().toLowerCase().contains(
+          'i cannot assist with topics outside of medical and clinical scope',
+        );
+
+        if (isOffTopic) {
+          await limitService.incrementOffTopicCounter();
+          final currentOffTopic = limitService.getOffTopicCounter();
+          if (currentOffTopic == 3) {
+            await limitService.decrementRight();
+            await limitService.resetOffTopicCounter();
+          } else {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(l10n.offTopicWarning),
+                  backgroundColor: Colors.orange.shade800,
+                  duration: const Duration(seconds: 4),
+                ),
+              );
+            }
+          }
+        } else {
+          await limitService.decrementRight();
+        }
 
         // Save AI response message
         final aiMsg = ChatMessage(sender: service.name, text: response);

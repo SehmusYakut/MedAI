@@ -235,6 +235,7 @@ class AppLocalizations {
       'medical_disclaimer': 'MedAI is an educational language model, not a certified clinical tool, and cannot provide official medical advice or diagnostic prescriptions.',
       'signInCanceled': 'Sign-in was canceled or authentication failed.',
       'signInConfigError': 'Google Sign-In configuration error (12500). Please verify Google Play Services.',
+      'off_topic_warning': 'Warning: Asking off-topic questions reduces your remaining daily tokens.',
     },
     'tr': {
       'app_title': 'MedAI',
@@ -458,6 +459,7 @@ class AppLocalizations {
       'medical_disclaimer': 'MedAI eğitsel bir dil modelidir, sertifikalı bir klinik araç değildir ve resmi tıbbi tavsiye veya teşhis reçetesi sağlayamaz.',
       'signInCanceled': 'Giriş işlemi iptal edildi veya kimlik doğrulama başarısız oldu.',
       'signInConfigError': 'Google Giriş yapılandırma hatası (12500). Lütfen Google Play Servislerini kontrol edin.',
+      'off_topic_warning': 'Uyarı: Konu dışı sorular sormak kalan günlük haklarınızı azaltır.',
     },
   };
 
@@ -643,6 +645,7 @@ class AppLocalizations {
   String get medicalDisclaimer => translate('medical_disclaimer');
   String get signInCanceled => translate('signInCanceled');
   String get signInConfigError => translate('signInConfigError');
+  String get offTopicWarning => translate('off_topic_warning');
 }
 
 class _AppLocalizationsDelegate
