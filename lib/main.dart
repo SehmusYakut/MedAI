@@ -26,6 +26,13 @@ void main() async {
   // Ensure Flutter bindings are initialized
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Load .env configuration
+  try {
+    await dotenv.load(fileName: ".env");
+  } catch (e) {
+    debugPrint('[Developer Warning] Failed to load .env configuration: $e');
+  }
+
   // Initialize Firebase
   try {
     await Firebase.initializeApp(
@@ -33,13 +40,6 @@ void main() async {
     );
   } catch (e, stack) {
     debugPrint('[Developer Warning] Failed to initialize Firebase: $e\n$stack');
-  }
-
-  // Load .env configuration
-  try {
-    await dotenv.load(fileName: ".env");
-  } catch (e) {
-    debugPrint('[Developer Warning] Failed to load .env configuration: $e');
   }
 
   // Load SharedPreferences and Settings Service before runApp

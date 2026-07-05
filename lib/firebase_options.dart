@@ -1,6 +1,7 @@
 import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, kIsWeb, TargetPlatform;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
@@ -27,8 +28,8 @@ class DefaultFirebaseOptions {
     }
   }
 
-  static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyDraaBP5gJi7tGuhP33tQI7-P_8Czx4Fck',
+  static FirebaseOptions get web => FirebaseOptions(
+    apiKey: dotenv.env['FIREBASE_WEB_API_KEY'] ?? '',
     appId: '1:913268485080:web:727fe30d3c02eac70ae0ad',
     messagingSenderId: '913268485080',
     projectId: 'enneagram-8b860',
@@ -37,23 +38,16 @@ class DefaultFirebaseOptions {
     measurementId: 'G-RQQ97P3M8M',
   );
 
-  static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyDHh0Ap4ahO2OKnWIvatBr80AQwI6VduE8',
+  static FirebaseOptions get android => FirebaseOptions(
+    apiKey: dotenv.env['FIREBASE_ANDROID_API_KEY'] ?? '',
     appId: '1:913268485080:android:1dded51205fe0ba20ae0ad',
     messagingSenderId: '913268485080',
     projectId: 'enneagram-8b860',
     storageBucket: 'enneagram-8b860.firebasestorage.app',
   );
-  static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyCwXJ4-LDSqqIloMstrCUZuCfQVTv2-q4Y',
-    appId: '1:913268485080:ios:2680f6dddc68de2b0ae0ad',
-    messagingSenderId: '913268485080',
-    projectId: 'enneagram-8b860',
-    storageBucket: 'enneagram-8b860.firebasestorage.app',
-    iosBundleId: 'com.kiraathanelabs.enneagram',
-  );
-  static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyCwXJ4-LDSqqIloMstrCUZuCfQVTv2-q4Y',
+
+  static FirebaseOptions get ios => FirebaseOptions(
+    apiKey: dotenv.env['FIREBASE_IOS_API_KEY'] ?? '',
     appId: '1:913268485080:ios:2680f6dddc68de2b0ae0ad',
     messagingSenderId: '913268485080',
     projectId: 'enneagram-8b860',
@@ -61,8 +55,17 @@ class DefaultFirebaseOptions {
     iosBundleId: 'com.kiraathanelabs.enneagram',
   );
 
-  static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyDraaBP5gJi7tGuhP33tQI7-P_8Czx4Fck',
+  static FirebaseOptions get macos => FirebaseOptions(
+    apiKey: dotenv.env['FIREBASE_IOS_API_KEY'] ?? '',
+    appId: '1:913268485080:ios:2680f6dddc68de2b0ae0ad',
+    messagingSenderId: '913268485080',
+    projectId: 'enneagram-8b860',
+    storageBucket: 'enneagram-8b860.firebasestorage.app',
+    iosBundleId: 'com.kiraathanelabs.enneagram',
+  );
+
+  static FirebaseOptions get windows => FirebaseOptions(
+    apiKey: dotenv.env['FIREBASE_WEB_API_KEY'] ?? '',
     appId: '1:913268485080:web:95da348290e2d48f0ae0ad',
     messagingSenderId: '913268485080',
     projectId: 'enneagram-8b860',
