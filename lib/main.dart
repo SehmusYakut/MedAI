@@ -114,7 +114,7 @@ class MyApp extends StatelessWidget {
         builder: (context, settings, _) {
           return MaterialApp(
             debugShowCheckedModeBanner: false,
-            title: 'MedAI',
+            title: 'Enneagram',
             locale: settings.locale,
             localizationsDelegates: const [
               AppLocalizations.delegate,

@@ -5,11 +5,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'central_config.dart';
 
 class UsageLimitService extends ChangeNotifier {
-  static const String _remainingQueriesKey = 'medai_remaining_queries';
-  static const String _lastResetTimeKey = 'medai_last_reset_time';
-  static const String _isPremiumKey = 'medai_is_premium';
-  static const String _offTopicCounterKey = 'medai_off_topic_counter';
-  static const String _offTopicLastResetDayKey = 'medai_off_topic_last_reset_day';
+  static const String _remainingQueriesKey = 'enneagram_remaining_queries';
+  static const String _lastResetTimeKey = 'enneagram_last_reset_time';
+  static const String _isPremiumKey = 'enneagram_is_premium';
+  static const String _offTopicCounterKey = 'enneagram_off_topic_counter';
+  static const String _offTopicLastResetDayKey = 'enneagram_off_topic_last_reset_day';
 
   final SharedPreferences _prefs;
   int _remainingQueries = 5;
@@ -28,7 +28,7 @@ class UsageLimitService extends ChangeNotifier {
     if (_listenerInitialized) return;
     try {
       Purchases.addCustomerInfoUpdateListener((customerInfo) async {
-        final isPremiumActive = customerInfo.entitlements.all['MedAI Pro']?.isActive ?? false;
+        final isPremiumActive = customerInfo.entitlements.all['Enneagram Pro']?.isActive ?? false;
         await setPremium(isPremiumActive);
       });
       _listenerInitialized = true;
@@ -62,7 +62,7 @@ class UsageLimitService extends ChangeNotifier {
         }
 
         final customerInfo = await Purchases.getCustomerInfo();
-        final isPremiumActive = customerInfo.entitlements.all['MedAI Pro']?.isActive ?? false;
+        final isPremiumActive = customerInfo.entitlements.all['Enneagram Pro']?.isActive ?? false;
         await setPremium(isPremiumActive);
       }
     } catch (e) {

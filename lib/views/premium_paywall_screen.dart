@@ -128,7 +128,7 @@ class _PremiumPaywallScreenState extends State<PremiumPaywallScreen> {
         final purchaseResult = await Purchases.purchase(purchaseParams);
         final customerInfo = purchaseResult.customerInfo;
         
-        final isPremiumActive = customerInfo.entitlements.all['MedAI Pro']?.isActive ?? false;
+        final isPremiumActive = customerInfo.entitlements.all['Enneagram Pro']?.isActive ?? false;
         await limitService.setPremium(isPremiumActive);
       } else {
         // Fallback Mock Purchase Flow (allows testing end-to-end sandbox when keys are placeholders)
