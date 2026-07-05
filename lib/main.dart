@@ -31,8 +31,8 @@ void main() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-  } catch (e) {
-    debugPrint('[Developer Warning] Failed to initialize Firebase: $e');
+  } catch (e, stack) {
+    debugPrint('[Developer Warning] Failed to initialize Firebase: $e\n$stack');
   }
 
   // Load .env configuration

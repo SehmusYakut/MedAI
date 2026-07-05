@@ -1,51 +1,26 @@
 {
   "project_info": {
-    "project_number": "329755241965",
-    "project_id": "medai-5e81e",
-    "storage_bucket": "medai-5e81e.firebasestorage.app"
+    "project_number": "913268485080",
+    "project_id": "enneagram-8b860",
+    "storage_bucket": "enneagram-8b860.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:329755241965:android:6ac7baf59f2fdec5424be4",
+        "mobilesdk_app_id": "1:913268485080:android:1dded51205fe0ba20ae0ad",
         "android_client_info": {
-          "package_name": "com.kiraathanelabs.medai"
+          "package_name": "com.kiraathanelabs.enneagram"
         }
       },
-      "oauth_client": [
-        {
-          "client_id": "329755241965-cda9nd2tjj914qbnsup3psl9g9lsb89b.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.kiraathanelabs.medai",
-            "certificate_hash": "54d0b9d0d15e5d3cb65e0f0a578d77d7aae8b3c0"
-          }
-        },
-        {
-          "client_id": "329755241965-g6qq9bces1gn0kbqpausom37cvppav2f.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
+      "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyDDrekgYGQebh1AK2UdK4O8e8DVG66KuAc"
+          "current_key": "AIzaSyDHh0Ap4ahO2OKnWIvatBr80AQwI6VduE8"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "329755241965-g6qq9bces1gn0kbqpausom37cvppav2f.apps.googleusercontent.com",
-              "client_type": 3
-            },
-            {
-              "client_id": "329755241965-rr4m1890i7mr8p36frnfjjljvr5pa499.apps.googleusercontent.com",
-              "client_type": 2,
-              "ios_info": {
-                "bundle_id": "com.example.medway"
-              }
-            }
-          ]
+          "other_platform_oauth_client": []
         }
       }
     }

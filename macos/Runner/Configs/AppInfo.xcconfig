@@ -8,7 +8,7 @@
 PRODUCT_NAME = medway
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = com.example.medway
+PRODUCT_BUNDLE_IDENTIFIER = com.kiraathanelabs.enneagram
 
 // The copyright displayed in application information
-PRODUCT_COPYRIGHT = Copyright © 2025 com.example. All rights reserved.
+PRODUCT_COPYRIGHT = Copyright © 2025 com.kiraathanelabs. All rights reserved.

@@ -1,4 +1,4 @@
-package com.kiraathanelabs.medai
+package com.kiraathanelabs.enneagram
 
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine

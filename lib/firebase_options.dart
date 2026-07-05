@@ -28,46 +28,46 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyDDrekgYGQebh1AK2UdK4O8e8DVG66KuAc',
-    appId: '1:329755241965:web:0fbc0af8c51ab7ef424be4',
-    messagingSenderId: '329755241965',
-    projectId: 'medai-5e81e',
-    authDomain: 'medai-5e81e.firebaseapp.com',
-    storageBucket: 'medai-5e81e.firebasestorage.app',
+    apiKey: 'AIzaSyDraaBP5gJi7tGuhP33tQI7-P_8Czx4Fck',
+    appId: '1:913268485080:web:727fe30d3c02eac70ae0ad',
+    messagingSenderId: '913268485080',
+    projectId: 'enneagram-8b860',
+    authDomain: 'enneagram-8b860.firebaseapp.com',
+    storageBucket: 'enneagram-8b860.firebasestorage.app',
+    measurementId: 'G-RQQ97P3M8M',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyDDrekgYGQebh1AK2UdK4O8e8DVG66KuAc',
-    appId: '1:329755241965:android:95c087e04db6efcc424be4',
-    messagingSenderId: '329755241965',
-    projectId: 'medai-5e81e',
-    storageBucket: 'medai-5e81e.firebasestorage.app',
+    apiKey: 'AIzaSyDHh0Ap4ahO2OKnWIvatBr80AQwI6VduE8',
+    appId: '1:913268485080:android:1dded51205fe0ba20ae0ad',
+    messagingSenderId: '913268485080',
+    projectId: 'enneagram-8b860',
+    storageBucket: 'enneagram-8b860.firebasestorage.app',
   );
-
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyDDrekgYGQebh1AK2UdK4O8e8DVG66KuAc',
-    appId: '1:329755241965:ios:7dc6b06e3b56258e424be4',
-    messagingSenderId: '329755241965',
-    projectId: 'medai-5e81e',
-    storageBucket: 'medai-5e81e.firebasestorage.app',
-    iosBundleId: 'com.example.medway',
+    apiKey: 'AIzaSyCwXJ4-LDSqqIloMstrCUZuCfQVTv2-q4Y',
+    appId: '1:913268485080:ios:2680f6dddc68de2b0ae0ad',
+    messagingSenderId: '913268485080',
+    projectId: 'enneagram-8b860',
+    storageBucket: 'enneagram-8b860.firebasestorage.app',
+    iosBundleId: 'com.kiraathanelabs.enneagram',
   );
-
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyDDrekgYGQebh1AK2UdK4O8e8DVG66KuAc',
-    appId: '1:329755241965:ios:7dc6b06e3b56258e424be4',
-    messagingSenderId: '329755241965',
-    projectId: 'medai-5e81e',
-    storageBucket: 'medai-5e81e.firebasestorage.app',
-    iosBundleId: 'com.example.medway',
+    apiKey: 'AIzaSyCwXJ4-LDSqqIloMstrCUZuCfQVTv2-q4Y',
+    appId: '1:913268485080:ios:2680f6dddc68de2b0ae0ad',
+    messagingSenderId: '913268485080',
+    projectId: 'enneagram-8b860',
+    storageBucket: 'enneagram-8b860.firebasestorage.app',
+    iosBundleId: 'com.kiraathanelabs.enneagram',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyDDrekgYGQebh1AK2UdK4O8e8DVG66KuAc',
-    appId: '1:329755241965:web:499881efe049f1ce424be4',
-    messagingSenderId: '329755241965',
-    projectId: 'medai-5e81e',
-    authDomain: 'medai-5e81e.firebaseapp.com',
-    storageBucket: 'medai-5e81e.firebasestorage.app',
+    apiKey: 'AIzaSyDraaBP5gJi7tGuhP33tQI7-P_8Czx4Fck',
+    appId: '1:913268485080:web:95da348290e2d48f0ae0ad',
+    messagingSenderId: '913268485080',
+    projectId: 'enneagram-8b860',
+    authDomain: 'enneagram-8b860.firebaseapp.com',
+    storageBucket: 'enneagram-8b860.firebasestorage.app',
+    measurementId: 'G-EW1N6CBN9X',
   );
 }

@@ -26,8 +26,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _isAuthenticating = false;
 
   final GoogleSignIn _googleSignIn = GoogleSignIn(
-    scopes: ['email', 'profile'],
     serverClientId: '329755241965-g6qq9bces1gn0kbqpausom37cvppav2f.apps.googleusercontent.com',
+    scopes: ['email', 'profile'],
   );
 
   final List<Map<String, String>> _tracks = [
