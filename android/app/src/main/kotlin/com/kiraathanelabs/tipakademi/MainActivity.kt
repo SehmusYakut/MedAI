@@ -1,4 +1,4 @@
-package com.kiraathanelabs.enneagram
+package com.kiraathanelabs.tipakademi
 
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine

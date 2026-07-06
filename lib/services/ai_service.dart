@@ -4,7 +4,7 @@ import 'package:google_generative_ai/google_generative_ai.dart';
 import 'central_config.dart';
 
 const String _systemPrompt = '''
-You are Enneagram, an expert clinical assistant for medical students. 
+You are TıpAkademi, an expert clinical assistant for medical students. 
 CRITICAL: You must detect the language of the user's query (e.g., English or Turkish) and reply in the EXACT SAME language. If the user asks in Turkish, reply in Turkish. If the user asks in English, reply in English. Do not mix languages or translate to a different language.
 
 STRICT GUARDRAILS:
@@ -28,7 +28,7 @@ class ChatGPTService implements AIService {
   ChatGPTService(this.apiKey);
 
   @override
-  String get name => 'Enneagram Clinical Engine';
+  String get name => 'TıpAkademi Clinical Engine';
 
   @override
   Future<String> generateResponse(String prompt) async {
@@ -52,7 +52,7 @@ class ChatGPTService implements AIService {
       return data['choices'][0]['message']['content'];
     } else {
       throw Exception(
-          'Failed to get response from Enneagram Clinical Engine: ${response.statusCode}');
+          'Failed to get response from TıpAkademi Clinical Engine: ${response.statusCode}');
     }
   }
 }
@@ -63,7 +63,7 @@ class MistralService implements AIService {
   MistralService(this.apiKey);
 
   @override
-  String get name => 'Enneagram Core Engine';
+  String get name => 'TıpAkademi Core Engine';
 
   @override
   Future<String> generateResponse(String prompt) async {
@@ -87,7 +87,7 @@ class MistralService implements AIService {
       return data['choices'][0]['message']['content'];
     } else {
       throw Exception(
-          'Failed to get response from Enneagram Core Engine: ${response.statusCode}');
+          'Failed to get response from TıpAkademi Core Engine: ${response.statusCode}');
     }
   }
 }
@@ -98,7 +98,7 @@ class GeminiService implements AIService {
   GeminiService(this.apiKey);
 
   @override
-  String get name => 'Enneagram Reasoning Engine';
+  String get name => 'TıpAkademi Reasoning Engine';
 
   @override
   Future<String> generateResponse(String prompt) async {
@@ -115,10 +115,10 @@ class GeminiService implements AIService {
       if (response.text != null) {
         return response.text!;
       } else {
-        throw Exception('No response from Enneagram Reasoning Engine');
+        throw Exception('No response from TıpAkademi Reasoning Engine');
       }
     } catch (e) {
-      throw Exception('Failed to get response from Enneagram Reasoning Engine: $e');
+      throw Exception('Failed to get response from TıpAkademi Reasoning Engine: $e');
     }
   }
 }
@@ -129,7 +129,7 @@ class ClaudeService implements AIService {
   ClaudeService(this.apiKey);
 
   @override
-  String get name => 'Enneagram Advanced Engine';
+  String get name => 'TıpAkademi Advanced Engine';
 
   @override
   Future<String> generateResponse(String prompt) async {
@@ -153,12 +153,12 @@ class ClaudeService implements AIService {
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       if (data['content'] is List && data['content'].isNotEmpty) {
-        return data['content'][0]['text'] ?? 'No response from Enneagram Advanced Engine';
+        return data['content'][0]['text'] ?? 'No response from TıpAkademi Advanced Engine';
       }
-      throw Exception('Invalid response format from Enneagram Advanced Engine');
+      throw Exception('Invalid response format from TıpAkademi Advanced Engine');
     } else {
       throw Exception(
-          'Failed to get response from Enneagram Advanced Engine: ${response.statusCode} - ${response.body}');
+          'Failed to get response from TıpAkademi Advanced Engine: ${response.statusCode} - ${response.body}');
     }
   }
 }
@@ -169,7 +169,7 @@ class GroqService implements AIService {
   GroqService(this.apiKey);
 
   @override
-  String get name => 'Enneagram Fast Engine';
+  String get name => 'TıpAkademi Fast Engine';
 
   @override
   Future<String> generateResponse(String prompt) async {
@@ -193,10 +193,10 @@ class GroqService implements AIService {
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       return data['choices'][0]['message']['content'] ??
-          'No response from Enneagram Fast Engine';
+          'No response from TıpAkademi Fast Engine';
     } else {
       throw Exception(
-          'Failed to get response from Enneagram Fast Engine: ${response.statusCode}');
+          'Failed to get response from TıpAkademi Fast Engine: ${response.statusCode}');
     }
   }
 }
@@ -207,7 +207,7 @@ class HuggingFaceService implements AIService {
   HuggingFaceService(this.apiKey);
 
   @override
-  String get name => 'Enneagram Research Engine';
+  String get name => 'TıpAkademi Research Engine';
 
   @override
   Future<String> generateResponse(String prompt) async {
@@ -229,12 +229,12 @@ class HuggingFaceService implements AIService {
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       if (data is List && data.isNotEmpty) {
-        return data[0]['generated_text'] ?? 'No response from Enneagram Research Engine';
+        return data[0]['generated_text'] ?? 'No response from TıpAkademi Research Engine';
       }
-      return 'No response from Enneagram Research Engine';
+      return 'No response from TıpAkademi Research Engine';
     } else {
       throw Exception(
-          'Failed to get response from Enneagram Research Engine: ${response.statusCode}');
+          'Failed to get response from TıpAkademi Research Engine: ${response.statusCode}');
     }
   }
 }
@@ -245,7 +245,7 @@ class OpenRouterService implements AIService {
   OpenRouterService(this.apiKey);
 
   @override
-  String get name => 'Enneagram Hybrid Engine';
+  String get name => 'TıpAkademi Hybrid Engine';
 
   @override
   Future<String> generateResponse(String prompt) async {
@@ -254,8 +254,8 @@ class OpenRouterService implements AIService {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $apiKey',
-        'HTTP-Referer': 'https://github.com/yourusername/enneagram',
-        'X-Title': 'Enneagram',
+        'HTTP-Referer': 'https://github.com/SehmusYakut/tipakademi',
+        'X-Title': 'TıpAkademi',
       },
       body: jsonEncode({
         'model': 'meta-llama/llama-2-70b-chat',
@@ -271,10 +271,10 @@ class OpenRouterService implements AIService {
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       return data['choices'][0]['message']['content'] ??
-          'No response from Enneagram Hybrid Engine';
+          'No response from TıpAkademi Hybrid Engine';
     } else {
       throw Exception(
-          'Failed to get response from Enneagram Hybrid Engine: ${response.statusCode}');
+          'Failed to get response from TıpAkademi Hybrid Engine: ${response.statusCode}');
     }
   }
 }
@@ -296,7 +296,7 @@ class AIServiceManager {
     }
 
     if (_services!.isEmpty) {
-      throw Exception("Enneagram Reasoning Engine API key is missing. Please configure GEMINI_API_KEY in your environment config.");
+      throw Exception("TıpAkademi Reasoning Engine API key is missing. Please configure GEMINI_API_KEY in your environment config.");
     }
 
     return _services!;

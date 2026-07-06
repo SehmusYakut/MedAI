@@ -10,7 +10,7 @@
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     
     <application
-        android:label="Enneagram"
+        android:label="TıpAkademi"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon">
         <activity

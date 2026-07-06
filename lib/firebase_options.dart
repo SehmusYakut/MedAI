@@ -3,7 +3,6 @@
 import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, kIsWeb, TargetPlatform;
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 /// Default [FirebaseOptions] for use with your Firebase apps.
 ///
@@ -41,49 +40,49 @@ class DefaultFirebaseOptions {
     }
   }
 
-  static FirebaseOptions get web => FirebaseOptions(
-    apiKey: dotenv.env['FIREBASE_WEB_API_KEY'] ?? '',
-    appId: '1:913268485080:web:727fe30d3c02eac70ae0ad',
-    messagingSenderId: '913268485080',
-    projectId: 'enneagram-8b860',
-    authDomain: 'enneagram-8b860.firebaseapp.com',
-    storageBucket: 'enneagram-8b860.firebasestorage.app',
-    measurementId: 'G-RQQ97P3M8M',
+  static const FirebaseOptions web = FirebaseOptions(
+    apiKey: 'AIzaSyDwhu0Rn1lXIU1FLraNPLdu7oVd2u3oUdo',
+    appId: '1:633590187282:web:b3fe2fdcd4dae618b39fcb',
+    messagingSenderId: '633590187282',
+    projectId: 'tip-akademi-764ac',
+    authDomain: 'tip-akademi-764ac.firebaseapp.com',
+    storageBucket: 'tip-akademi-764ac.firebasestorage.app',
+    measurementId: 'G-BVXW0S4CXD',
   );
 
-  static FirebaseOptions get android => FirebaseOptions(
-    apiKey: dotenv.env['FIREBASE_ANDROID_API_KEY'] ?? '',
-    appId: '1:913268485080:android:1dded51205fe0ba20ae0ad',
-    messagingSenderId: '913268485080',
-    projectId: 'enneagram-8b860',
-    storageBucket: 'enneagram-8b860.firebasestorage.app',
+  static const FirebaseOptions android = FirebaseOptions(
+    apiKey: 'AIzaSyDOLvGgnANRyLWgHOlKIQ3KpdqY5zBQSlM',
+    appId: '1:633590187282:android:2093b60f276436f5b39fcb',
+    messagingSenderId: '633590187282',
+    projectId: 'tip-akademi-764ac',
+    storageBucket: 'tip-akademi-764ac.firebasestorage.app',
   );
 
-  static FirebaseOptions get ios => FirebaseOptions(
-    apiKey: dotenv.env['FIREBASE_IOS_API_KEY'] ?? '',
-    appId: '1:913268485080:ios:2680f6dddc68de2b0ae0ad',
-    messagingSenderId: '913268485080',
-    projectId: 'enneagram-8b860',
-    storageBucket: 'enneagram-8b860.firebasestorage.app',
-    iosBundleId: 'com.kiraathanelabs.enneagram',
+  static const FirebaseOptions ios = FirebaseOptions(
+    apiKey: 'AIzaSyCtgE1XpmIe07scky8DvXVdsK-1uqrRLlc',
+    appId: '1:633590187282:ios:3b62c83a4075bc3bb39fcb',
+    messagingSenderId: '633590187282',
+    projectId: 'tip-akademi-764ac',
+    storageBucket: 'tip-akademi-764ac.firebasestorage.app',
+    iosBundleId: 'com.kiraathanelabs.tipakademi',
   );
 
-  static FirebaseOptions get macos => FirebaseOptions(
-    apiKey: dotenv.env['FIREBASE_IOS_API_KEY'] ?? '',
-    appId: '1:913268485080:ios:2680f6dddc68de2b0ae0ad',
-    messagingSenderId: '913268485080',
-    projectId: 'enneagram-8b860',
-    storageBucket: 'enneagram-8b860.firebasestorage.app',
-    iosBundleId: 'com.kiraathanelabs.enneagram',
+  static const FirebaseOptions macos = FirebaseOptions(
+    apiKey: 'AIzaSyCtgE1XpmIe07scky8DvXVdsK-1uqrRLlc',
+    appId: '1:633590187282:ios:3b62c83a4075bc3bb39fcb',
+    messagingSenderId: '633590187282',
+    projectId: 'tip-akademi-764ac',
+    storageBucket: 'tip-akademi-764ac.firebasestorage.app',
+    iosBundleId: 'com.kiraathanelabs.tipakademi',
   );
 
-  static FirebaseOptions get windows => FirebaseOptions(
-    apiKey: dotenv.env['FIREBASE_WEB_API_KEY'] ?? '',
-    appId: '1:913268485080:web:95da348290e2d48f0ae0ad',
-    messagingSenderId: '913268485080',
-    projectId: 'enneagram-8b860',
-    authDomain: 'enneagram-8b860.firebaseapp.com',
-    storageBucket: 'enneagram-8b860.firebasestorage.app',
-    measurementId: 'G-EW1N6CBN9X',
+  static const FirebaseOptions windows = FirebaseOptions(
+    apiKey: 'AIzaSyDwhu0Rn1lXIU1FLraNPLdu7oVd2u3oUdo',
+    appId: '1:633590187282:web:9c5b6d9d820877f5b39fcb',
+    messagingSenderId: '633590187282',
+    projectId: 'tip-akademi-764ac',
+    authDomain: 'tip-akademi-764ac.firebaseapp.com',
+    storageBucket: 'tip-akademi-764ac.firebasestorage.app',
+    measurementId: 'G-XJN066MLYB',
   );
 }

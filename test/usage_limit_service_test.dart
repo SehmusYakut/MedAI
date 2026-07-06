@@ -48,7 +48,7 @@ void main() {
       // Manually set last reset day in SharedPreferences to yesterday
       final yesterday = DateTime.now().subtract(const Duration(days: 1));
       final yesterdayStr = "${yesterday.year}-${yesterday.month}-${yesterday.day}";
-      await prefs.setString('enneagram_off_topic_last_reset_day', yesterdayStr);
+      await prefs.setString('tipakademi_off_topic_last_reset_day', yesterdayStr);
 
       // Accessing the counter should trigger a check and reset it to 0
       expect(service.getOffTopicCounter(), 0);
@@ -56,7 +56,7 @@ void main() {
       // Verify the reset day key was updated to today
       final now = DateTime.now();
       final todayStr = "${now.year}-${now.month}-${now.day}";
-      expect(prefs.getString('enneagram_off_topic_last_reset_day'), todayStr);
+      expect(prefs.getString('tipakademi_off_topic_last_reset_day'), todayStr);
     });
 
     test('Deducting rights work correctly', () async {

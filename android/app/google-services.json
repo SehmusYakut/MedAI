@@ -1,21 +1,21 @@
 {
   "project_info": {
-    "project_number": "913268485080",
-    "project_id": "enneagram-8b860",
-    "storage_bucket": "enneagram-8b860.firebasestorage.app"
+    "project_number": "633590187282",
+    "project_id": "tip-akademi-764ac",
+    "storage_bucket": "tip-akademi-764ac.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:913268485080:android:1dded51205fe0ba20ae0ad",
+        "mobilesdk_app_id": "1:633590187282:android:2093b60f276436f5b39fcb",
         "android_client_info": {
-          "package_name": "com.kiraathanelabs.enneagram"
+          "package_name": "com.kiraathanelabs.tipakademi"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "YOUR_FIREBASE_ANDROID_API_KEY_HERE"
+          "current_key": "AIzaSyDOLvGgnANRyLWgHOlKIQ3KpdqY5zBQSlM"
         }
       ],
       "services": {

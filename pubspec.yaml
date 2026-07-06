@@ -71,11 +71,11 @@ dev_dependencies:
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
-  image_path: "assets/images/medai_logo_source.png"
+  image_path: "assets/images/tipakademi_icon.png"
   min_sdk_android: 21
   remove_alpha_ios: true
-  adaptive_icon_background: "#121214"
-  adaptive_icon_foreground: "assets/images/medai_logo_foreground.png"
+  adaptive_icon_background: "#0A1628"
+  adaptive_icon_foreground: "assets/images/tipakademi_icon.png"
   adaptive_icon_foreground_inset: 0
 
 # For information on the generic Dart part of this file, see the
@@ -93,6 +93,7 @@ flutter:
   assets:
     - lib/assests/logo.jpeg
     - assets/images/medai_logo_source.png
+    - assets/images/tipakademi_icon.png
     - .env
 
   # An image asset can refer to one or more resolution-specific "variants", see

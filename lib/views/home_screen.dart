@@ -70,6 +70,16 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
     return Scaffold(
       appBar: AppBar(
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 12.0),
+          child: Image.asset(
+            'assets/images/tipakademi_icon.png',
+            width: 32,
+            height: 32,
+            fit: BoxFit.contain,
+          ),
+        ),
+        leadingWidth: 52,
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [

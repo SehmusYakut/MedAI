@@ -841,7 +841,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          isTurkish ? "Enneagram Ücretsiz Sürüm" : "Enneagram Free Tier",
+                          isTurkish ? "TıpAkademi Ücretsiz Sürüm" : "TıpAkademi Free Tier",
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -957,8 +957,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     children: [
                       Text(
                         isPremium
-                            ? (isTurkish ? "Enneagram Pro Üyeliği Aktif" : "Enneagram Pro Active")
-                            : (isTurkish ? "Enneagram Ücretsiz Sürüm" : "Enneagram Free Tier"),
+                            ? (isTurkish ? "TıpAkademi Pro Üyeliği Aktif" : "TıpAkademi Pro Active")
+                            : (isTurkish ? "TıpAkademi Ücretsiz Sürüm" : "TıpAkademi Free Tier"),
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -989,7 +989,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       : "Enjoy 50 daily clinical queries, priority servers, diagnostic insight graphs, and prescription OCR.")
                   : (isTurkish
                       ? "Günlük 5 klinik vaka hakkıyla sınırlı erişim. Tüm özellikleri açmak için Pro'ya yükseltin."
-                      : "Limited to 5 daily clinical cases. Upgrade to unlock the full clinical potential of Enneagram."),
+                      : "Limited to 5 daily clinical cases. Upgrade to unlock the full clinical potential of TıpAkademi."),
               style: TextStyle(
                 fontSize: 12,
                 color: isDark ? Colors.white60 : Colors.black54,
@@ -1026,7 +1026,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       },
                       icon: const Icon(Icons.bolt, size: 18),
                       label: Text(
-                        isTurkish ? "Enneagram Pro'ya Yükselt" : "Upgrade to Enneagram Pro",
+                        isTurkish ? "TıpAkademi Pro'ya Yükselt" : "Upgrade to TıpAkademi Pro",
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                       style: FilledButton.styleFrom(
