@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/theme_and_locale_service.dart';
@@ -37,17 +36,27 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       _OnboardingSlide(
         title: l10n.onboardingSlide1Title,
         description: l10n.onboardingSlide1Desc,
-        illustration: const _FuturisticEmblemIllustration(),
+        illustration: const _TipAkademiLogoIllustration(
+          shape: BoxShape.circle,
+          glowColor: Color(0xFF00E5FF),
+        ),
       ),
       _OnboardingSlide(
         title: l10n.onboardingSlide2Title,
         description: l10n.onboardingSlide2Desc,
-        illustration: const _ScannerIllustration(),
+        illustration: const _TipAkademiLogoIllustration(
+          shape: BoxShape.rectangle,
+          glowColor: Color(0xFF3B82F6),
+          borderRadius: 24,
+        ),
       ),
       _OnboardingSlide(
         title: l10n.onboardingSlide3Title,
         description: l10n.onboardingSlide3Desc,
-        illustration: const _MedsIllustration(),
+        illustration: const _TipAkademiLogoIllustration(
+          shape: BoxShape.circle,
+          glowColor: Color(0xFF8B5CF6),
+        ),
       ),
     ];
 
@@ -298,295 +307,61 @@ class _OnboardingSlide extends StatelessWidget {
   }
 }
 
-/// A glowing geometric medical cross illustration
-class _FuturisticEmblemIllustration extends StatelessWidget {
-  const _FuturisticEmblemIllustration();
+/// Official TıpAkademi icon-only logo in a glowing branded container.
+/// Used on all onboarding slides for consistent branding.
+class _TipAkademiLogoIllustration extends StatelessWidget {
+  final BoxShape shape;
+  final Color glowColor;
+  final double borderRadius;
+
+  const _TipAkademiLogoIllustration({
+    required this.shape,
+    required this.glowColor,
+    this.borderRadius = 0,
+  });
 
   @override
   Widget build(BuildContext context) {
-    const darkBlue = Color(0xFF0F1E36);
-    const electricTeal = Color(0xFF00E5FF);
+    const darkBlue = Color(0xFF0A1628);
 
     return Container(
       width: 180,
       height: 180,
       decoration: BoxDecoration(
-        shape: BoxShape.circle,
+        shape: shape,
         color: darkBlue,
+        borderRadius: shape == BoxShape.rectangle
+            ? BorderRadius.circular(borderRadius)
+            : null,
         border: Border.all(
-          color: electricTeal.withValues(alpha: 0.3),
+          color: glowColor.withValues(alpha: 0.35),
           width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: electricTeal.withValues(alpha: 0.25),
-            blurRadius: 25,
-            spreadRadius: 3,
+            color: glowColor.withValues(alpha: 0.30),
+            blurRadius: 30,
+            spreadRadius: 4,
           ),
-        ],
-      ),
-      child: Center(
-        child: CustomPaint(
-          size: const Size(100, 100),
-          painter: _EmblemPainter(),
-        ),
-      ),
-    );
-  }
-}
-
-class _EmblemPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    const electricTeal = Color(0xFF00E5FF);
-    final width = size.width;
-    final double r = width / 2;
-    final center = Offset(width / 2, size.height / 2);
-
-    // Outer Hexagon
-    final hexPath = Path();
-    for (int i = 0; i < 6; i++) {
-      final angle = (i * 60) * pi / 180;
-      final x = center.dx + r * 0.9 * cos(angle);
-      final y = center.dy + r * 0.9 * sin(angle);
-      if (i == 0) {
-        hexPath.moveTo(x, y);
-      } else {
-        hexPath.lineTo(x, y);
-      }
-    }
-    hexPath.close();
-
-    final hexPaint = Paint()
-      ..color = electricTeal.withValues(alpha: 0.1)
-      ..style = PaintingStyle.fill;
-    canvas.drawPath(hexPath, hexPaint);
-
-    final hexStroke = Paint()
-      ..color = electricTeal.withValues(alpha: 0.4)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2;
-    canvas.drawPath(hexPath, hexStroke);
-
-    // Inner cross representing medical focus
-    final crossPaint = Paint()
-      ..color = electricTeal
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 6
-      ..strokeCap = StrokeCap.round;
-
-    final double len = r * 0.45;
-    canvas.drawLine(Offset(center.dx - len, center.dy), Offset(center.dx + len, center.dy), crossPaint);
-    canvas.drawLine(Offset(center.dx, center.dy - len), Offset(center.dx, center.dy + len), crossPaint);
-
-    // Glowing core dot
-    final corePaint = Paint()
-      ..color = Colors.white
-      ..style = PaintingStyle.fill;
-    canvas.drawCircle(center, 5, corePaint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-/// A premium OCR Prescription Scanner illustration with glowing box and laser line
-class _ScannerIllustration extends StatelessWidget {
-  const _ScannerIllustration();
-
-  @override
-  Widget build(BuildContext context) {
-    const darkBlue = Color(0xFF0F1E36);
-    const electricTeal = Color(0xFF00E5FF);
-
-    return Container(
-      width: 180,
-      height: 180,
-      decoration: BoxDecoration(
-        color: darkBlue,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: electricTeal.withValues(alpha: 0.3),
-          width: 1.5,
-        ),
-        boxShadow: [
           BoxShadow(
-            color: electricTeal.withValues(alpha: 0.2),
-            blurRadius: 20,
-            spreadRadius: 2,
+            color: glowColor.withValues(alpha: 0.12),
+            blurRadius: 60,
+            spreadRadius: 12,
           ),
         ],
       ),
-      child: Center(
-        child: CustomPaint(
-          size: const Size(110, 110),
-          painter: _ScannerPainter(),
+      child: ClipRRect(
+        borderRadius: shape == BoxShape.rectangle
+            ? BorderRadius.circular(borderRadius - 2)
+            : BorderRadius.circular(90),
+        child: Padding(
+          padding: const EdgeInsets.all(28.0),
+          child: Image.asset(
+            'assets/images/tipakademi_icon.png',
+            fit: BoxFit.contain,
+          ),
         ),
       ),
     );
   }
-}
-
-class _ScannerPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    const electricTeal = Color(0xFF00E5FF);
-
-    // Outer document shape
-    final docPaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.08)
-      ..style = PaintingStyle.fill;
-    final docPath = Path()
-      ..moveTo(20, 10)
-      ..lineTo(70, 10)
-      ..lineTo(90, 30)
-      ..lineTo(90, 100)
-      ..lineTo(20, 100)
-      ..close();
-    canvas.drawPath(docPath, docPaint);
-
-    final docStroke = Paint()
-      ..color = Colors.white.withValues(alpha: 0.25)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5;
-    canvas.drawPath(docPath, docStroke);
-
-    // Text mock lines inside document
-    final linePaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.4)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3
-      ..strokeCap = StrokeCap.round;
-
-    canvas.drawLine(const Offset(35, 30), const Offset(60, 30), linePaint);
-    canvas.drawLine(const Offset(35, 45), const Offset(75, 45), linePaint);
-    canvas.drawLine(const Offset(35, 60), const Offset(70, 60), linePaint);
-    canvas.drawLine(const Offset(35, 75), const Offset(55, 75), linePaint);
-
-    // Scanning target corners
-    final cornerPaint = Paint()
-      ..color = electricTeal
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3;
-
-    // Top-Left corner
-    canvas.drawPath(Path()..moveTo(10, 25)..lineTo(10, 10)..lineTo(25, 10), cornerPaint);
-    // Top-Right corner
-    canvas.drawPath(Path()..moveTo(100, 25)..lineTo(100, 10)..lineTo(85, 10), cornerPaint);
-    // Bottom-Left corner
-    canvas.drawPath(Path()..moveTo(10, 85)..lineTo(10, 100)..lineTo(25, 100), cornerPaint);
-    // Bottom-Right corner
-    canvas.drawPath(Path()..moveTo(100, 85)..lineTo(100, 100)..lineTo(85, 100), cornerPaint);
-
-    // Laser Line
-    final laserPaint = Paint()
-      ..color = electricTeal
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.5
-      ..imageFilter = const ColorFilter.mode(electricTeal, BlendMode.srcATop);
-
-    canvas.drawLine(const Offset(5, 50), const Offset(105, 50), laserPaint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-/// A premium Medicine Programs & Board Exams illustration with orbiting rings
-class _MedsIllustration extends StatelessWidget {
-  const _MedsIllustration();
-
-  @override
-  Widget build(BuildContext context) {
-    const darkBlue = Color(0xFF0F1E36);
-    const electricTeal = Color(0xFF00E5FF);
-
-    return Container(
-      width: 180,
-      height: 180,
-      decoration: BoxDecoration(
-        color: darkBlue,
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: electricTeal.withValues(alpha: 0.3),
-          width: 1.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: electricTeal.withValues(alpha: 0.2),
-            blurRadius: 20,
-            spreadRadius: 2,
-          ),
-        ],
-      ),
-      child: Center(
-        child: CustomPaint(
-          size: const Size(100, 100),
-          painter: _MedsPainter(),
-        ),
-      ),
-    );
-  }
-}
-
-class _MedsPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    const electricTeal = Color(0xFF00E5FF);
-    const darkBlue = Color(0xFF0F1E36);
-    final width = size.width;
-    final height = size.height;
-    final center = Offset(width / 2, height / 2);
-
-    // Outer Orbiting Rings
-    final ringPaint = Paint()
-      ..color = electricTeal.withValues(alpha: 0.2)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5;
-    canvas.drawOval(Rect.fromCenter(center: center, width: 85, height: 35), ringPaint);
-    canvas.drawOval(Rect.fromCenter(center: center, width: 35, height: 85), ringPaint);
-
-    // Pill Shape in center
-    final pillPaint1 = Paint()
-      ..color = electricTeal
-      ..style = PaintingStyle.fill;
-    final pillPaint2 = Paint()
-      ..color = Colors.white
-      ..style = PaintingStyle.fill;
-
-    // Draw rotated pill
-    canvas.save();
-    canvas.translate(center.dx, center.dy);
-    canvas.rotate(-pi / 4);
-
-    // Left half (Teal)
-    final pathLeft = Path()
-      ..addArc(Rect.fromLTWH(-28, -12, 24, 24), pi / 2, pi)
-      ..lineTo(0, -12)
-      ..lineTo(0, 12)
-      ..lineTo(-16, 12)
-      ..close();
-    canvas.drawPath(pathLeft, pillPaint1);
-
-    // Right half (White)
-    final pathRight = Path()
-      ..addArc(Rect.fromLTWH(4, -12, 24, 24), -pi / 2, pi)
-      ..lineTo(0, 12)
-      ..lineTo(0, -12)
-      ..lineTo(16, -12)
-      ..close();
-    canvas.drawPath(pathRight, pillPaint2);
-
-    // Separator line
-    final sepPaint = Paint()
-      ..color = darkBlue.withValues(alpha: 0.5)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2;
-    canvas.drawLine(const Offset(0, -12), const Offset(0, 12), sepPaint);
-
-    canvas.restore();
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

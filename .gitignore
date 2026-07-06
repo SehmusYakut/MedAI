@@ -46,3 +46,7 @@ app.*.map.json
 
 # Local environment variables containing secrets
 .env
+
+# Firebase Android config (contains API keys — gitignored, use google-services.json.example as template)
+android/app/google-services.json
+

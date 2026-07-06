@@ -6,7 +6,7 @@ import '../models/chat_session.dart';
 import '../models/chat_message.dart';
 
 class ChatStorageService {
-  static const String _sessionsKey = 'medai_chat_sessions';
+  static const String _sessionsKey = 'tipakademi_chat_sessions';
   final SharedPreferences _prefs;
 
   ChatStorageService(this._prefs);
@@ -24,7 +24,8 @@ class ChatStorageService {
     if (sessionsJson == null) return [];
     try {
       final List<dynamic> decoded = jsonDecode(sessionsJson);
-      final sessions = decoded.map((item) => ChatSession.fromJson(item)).toList();
+      final sessions =
+          decoded.map((item) => ChatSession.fromJson(item)).toList();
       // Sort by lastInteraction descending
       sessions.sort((a, b) => b.lastInteraction.compareTo(a.lastInteraction));
       return sessions;
@@ -35,7 +36,8 @@ class ChatStorageService {
   }
 
   Future<void> _saveSessions(List<ChatSession> sessions) async {
-    final String sessionsJson = jsonEncode(sessions.map((s) => s.toJson()).toList());
+    final String sessionsJson =
+        jsonEncode(sessions.map((s) => s.toJson()).toList());
     await _prefs.setString(_currentSessionsKey, sessionsJson);
   }
 
@@ -55,12 +57,16 @@ class ChatStorageService {
     final index = sessions.indexWhere((s) => s.id == sessionId);
     if (index != -1) {
       final session = sessions[index];
-      final updatedMessages = List<ChatMessage>.from(session.messages)..add(message);
-      
+      final updatedMessages = List<ChatMessage>.from(session.messages)
+        ..add(message);
+
       // If title is default and this is the first user message, rename session
       String updatedTitle = session.title;
-      if ((session.title == 'New Clinical Case...' || session.title.isEmpty) && message.sender == 'user') {
-        updatedTitle = message.text.length > 30 ? '${message.text.substring(0, 30)}...' : message.text;
+      if ((session.title == 'New Clinical Case...' || session.title.isEmpty) &&
+          message.sender == 'user') {
+        updatedTitle = message.text.length > 30
+            ? '${message.text.substring(0, 30)}...'
+            : message.text;
       }
 
       sessions[index] = session.copyWith(
@@ -95,33 +101,37 @@ class ChatStorageService {
     if (guestSessionsJson != null && guestSessionsJson.trim().isNotEmpty) {
       try {
         final List<dynamic> guestDecoded = jsonDecode(guestSessionsJson);
-        final guestSessions = guestDecoded.map((item) => ChatSession.fromJson(item)).toList();
-        
+        final guestSessions =
+            guestDecoded.map((item) => ChatSession.fromJson(item)).toList();
+
         if (guestSessions.isNotEmpty) {
           final String userKey = '${_sessionsKey}_$userId';
           final String? userSessionsJson = _prefs.getString(userKey);
           List<ChatSession> userSessions = [];
           if (userSessionsJson != null && userSessionsJson.trim().isNotEmpty) {
             final List<dynamic> userDecoded = jsonDecode(userSessionsJson);
-            userSessions = userDecoded.map((item) => ChatSession.fromJson(item)).toList();
+            userSessions =
+                userDecoded.map((item) => ChatSession.fromJson(item)).toList();
           }
-          
+
           // Merge guest sessions into user sessions. Avoid duplicates by ID.
           for (var guestSession in guestSessions) {
             if (!userSessions.any((s) => s.id == guestSession.id)) {
               userSessions.add(guestSession);
             }
           }
-          
+
           // Save merged sessions under user key
-          final String mergedJson = jsonEncode(userSessions.map((s) => s.toJson()).toList());
+          final String mergedJson =
+              jsonEncode(userSessions.map((s) => s.toJson()).toList());
           await _prefs.setString(userKey, mergedJson);
-          
+
           // Clear guest sessions
           await _prefs.remove(_sessionsKey);
         }
       } catch (e) {
-        debugPrint('[ChatStorageService] Error linking guest sessions to user: $e');
+        debugPrint(
+            '[ChatStorageService] Error linking guest sessions to user: $e');
       }
     }
   }
